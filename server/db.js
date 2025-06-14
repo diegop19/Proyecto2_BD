@@ -1,7 +1,7 @@
 const sql = require('mssql');
 
 const dbConfig = {
-  server: '127.0.0.1', // Usa IP local directamente
+  server: '127.0.0.1', 
   port: 1433, 
   user: 'admin',
   password: 'admin123',
