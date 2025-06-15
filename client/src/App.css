@@ -1,4 +1,12 @@
 /* Estilos generales */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap');
+
+body {
+  margin: 0;
+  line-height: normal;
+  font-family: 'Montserrat', sans-serif;
+}
+
 .App {
   min-height: 100vh;
   display: flex;
@@ -14,7 +22,7 @@
 }
 
 .btn-primary {
-  background-color: #4caf50;
+  background-color: #267985;
   color: white;
   padding: 10px 20px;
   border: none;
