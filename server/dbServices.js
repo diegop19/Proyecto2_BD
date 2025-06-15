@@ -125,9 +125,135 @@ module.exports = {
       .input('ID_Establecimiento', sql.Int, idEstablecimiento)
       .execute('sp_ObtenerTiposHabitacionPorHotel');
     
-    return result.recordset; // Devuelve los datos directamente
+    return result.recordset; 
   },
+
+  // COMODIDADES
+
+  // Asignar Comodidad a una habitacion 
+  asignarComodidadHabitacion: async (idTipoHabitacion, idComodidad) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    request.input('IDTipoHabitacion', sql.Int, idTipoHabitacion);
+    request.input('IDComodidad', sql.Int, idComodidad);
+    
+    await request.execute('sp_AsignarComodidadHabitacion');
+  },
+
+  // obtener todas las comodidades
+  obtenerComodidades: async () => {
+    const pool = await getConnection();
+    const result = await pool.request().execute(sp_ObtenerComodidades);  // las comodidades se obtendra directamente de la base de datos al front
+      return result.recordset;
+  },
+
+  // obtener las comodidades por el tipo de habitacion
+
+  obtenerComodidadesHabitacion: async (idTipoHabitacion) => {
+    const pool = await getConnection();
+    const result = await pool.request().execute(sp_ObtenerComodidadesPorTipoHabitacion)
+    return result.recordset;
+  },
+
+  // HABITACIONES
+
+  insertarHabitacion: async (habitacionData) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    // Parametros requeridos
+    request.input('IDTipoHabitacion', sql.Int, habitacionData.idTipoHabitacion);
+    request.input('Numero', sql.VarChar(10), habitacionData.numero);
+    
+    // Parametro opcional con valor por defecto
+    request.input('Estado', sql.VarChar(20), habitacionData.estado || 'Disponible');
+    
+    request.output('IDHabitacion', sql.Int);
+    
+    await request.execute('sp_InsertarHabitacion');
+    return request.parameters.IDHabitacion.value;
+  },
+
+  // CLIENTES ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    insertarCliente: async (clienteData) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    // Parametros requeridos
+    request.input('Nombre', sql.VarChar(50), clienteData.nombre);
+    request.input('Apellido1', sql.VarChar(50), clienteData.apellido1);
+    request.input('FechaNacimiento', sql.Date, clienteData.fechaNacimiento);
+    request.input('Cedula', sql.VarChar(20), clienteData.cedula);
+    request.input('PaisResidencia', sql.VarChar(50), clienteData.paisResidencia);
+    
+    // Parametros opcionales
+    request.input('Apellido2', sql.VarChar(50), clienteData.apellido2 || null);
+    request.input('IDDireccion', sql.Int, clienteData.idDireccion || null);
+    request.input('Telefono1', sql.VarChar(20), clienteData.telefono1 || null);
+    request.input('Telefono2', sql.VarChar(20), clienteData.telefono2 || null);
+    request.input('Telefono3', sql.VarChar(20), clienteData.telefono3 || null);
+    request.input('Email', sql.VarChar(100), clienteData.email || null);
+    
+    request.output('IDCliente', sql.Int);
+    
+    await request.execute('sp_InsertarCliente');
+    return request.parameters.IDCliente.value;
+  },
+  
+  insertarReservacion: async (reservacionData) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    // Parametros requeridos
+    request.input('ID_Cliente', sql.Int, reservacionData.idCliente);
+    request.input('ID_Habitacion', sql.Int, reservacionData.idHabitacion);
+    request.input('Fecha_Ingreso', sql.Date, reservacionData.fechaIngreso);
+    request.input('Fecha_Salida', sql.Date, reservacionData.fechaSalida);
+    request.input('Cantidad_Personas', sql.Int, reservacionData.cantidadPersonas);
+    
+    // Parametros opcionales
+    request.input('Hora_Ingreso', sql.Time, reservacionData.horaIngreso || null);
+    request.input('Hora_Salida', sql.Time, reservacionData.horaSalida || null);
+    request.input('Tiene_Vehiculo', sql.Bit, reservacionData.tieneVehiculo || false);
+    
+    // Parametros de salida
+    request.output('ID_Reservacion', sql.Int);
+    request.output('Mensaje', sql.VarChar(200));
+    
+    await request.execute('sp_InsertarReservacion');
+    
+    return {
+      idReservacion: request.parameters.ID_Reservacion.value,
+      mensaje: request.parameters.Mensaje.value
+    };
+  },
+
+  insertarFactura: async (facturaData) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    // Parametros requeridos
+    request.input('ID_Reservacion', sql.Int, facturaData.idReservacion);
+    request.input('Metodo_Pago', sql.VarChar(20), facturaData.metodoPago);
+    
+    // Parametros opcionales
+    request.input('Detalles', sql.VarChar(200), facturaData.detalles || null);
+    
+    // Parámetros de salida
+    request.output('ID_Factura', sql.Int);
+    request.output('Mensaje', sql.VarChar(200));
+    
+    await request.execute('sp_InsertarFactura');
+    
+    return {
+      idFactura: request.parameters.ID_Factura.value,
+      mensaje: request.parameters.Mensaje.value
+    };
+  }
 
 
 
 };
+ 
