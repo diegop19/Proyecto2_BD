@@ -9,7 +9,7 @@ const ClientHome = () => {
       <HeroSection
         title="EXPLORA LOS MEJORES HOSPEDAJES"
         subtitle="Encuentra tu alojamiento ideal en Limón"
-        backgroundImage="/images/client-hero.jpg"
+        backgroundImage="/images/imagen1.jpg"
         buttons={[{
           label: "Buscar Hospedajes",
           onClick: () => navigate('/lodging')

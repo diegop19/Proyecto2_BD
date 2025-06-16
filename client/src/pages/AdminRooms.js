@@ -9,7 +9,7 @@ const AdminRooms = () => {
       <HeroSection
         title="GESTIÓN DE HABITACIONES"
         subtitle="Administra las habitaciones de tu hotel"
-        backgroundImage="/images/admin-hero.jpg"
+        backgroundImage="/images/imagen1.webp"
         overlayOpacity={0.7}
         buttons={[{
           label: "Añadir Habitación",
