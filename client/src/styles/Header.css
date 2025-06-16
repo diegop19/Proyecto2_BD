@@ -1,83 +1,95 @@
-/* src/styles/Header.css */
 .app-header {
-    background-color: #267985;
-    color: white;
-    padding: 1rem 0;
-    font-family: 'Montserrat', sans-serif;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  
+  background-color: #267985;
+  color: white;
+  padding: 1rem 0;
+  font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-link {
+  color: white;
+  text-decoration: none;
+}
+
+.logo-link h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.main-nav {
+  display: flex;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  padding: 0.5rem 0;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: #3498db;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #3498db;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.role-switcher {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.role-switcher:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
   .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .logo-link {
-    color: white;
-    text-decoration: none;
-  }
-  
-  .logo-link h1 {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  
-  .main-nav {
-    display: flex;
+    flex-direction: column;
+    padding: 1rem;
   }
   
   .nav-list {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    gap: 1.5rem;
+    margin-top: 1rem;
+    gap: 1rem;
   }
-  
-  .nav-link {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
-    padding: 0.5rem 0;
-    position: relative;
-  }
-  
-  .nav-link:hover {
-    color: #3498db;
-  }
-  
-  .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: #3498db;
-    transition: width 0.3s ease;
-  }
-  
-  .nav-link:hover::after {
-    width: 100%;
-  }
-  
-
-  @media (max-width: 768px) {  /* Diseño responsivo para el Header */
-    .header-container {
-      flex-direction: column;
-      padding: 1rem;
-    }
-    
-    .nav-list {
-      margin-top: 1rem;
-      gap: 1rem;
-    }
-  }
+}
