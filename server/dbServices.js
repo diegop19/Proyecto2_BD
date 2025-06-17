@@ -624,7 +624,69 @@ obtenerHotelMayorDemandaProvincia: async (provincia) => {
   await pool.close();
   
   return result.recordset;
-}
+},
+
+// BUSQUEDAS ----------------------------------------------------------------------------------------------------------------------------------------------
+
+// Buscar Establecimientos 
+
+buscarEstablecimientos: async (filtros) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('Nombre', sql.VarChar(100), filtros.nombre);
+  request.input('Provincia', sql.VarChar(50), filtros.provincia);
+  request.input('Canton', sql.VarChar(50), filtros.canton);
+  request.input('Servicio', sql.VarChar(50), filtros.servicio);
+  request.input('TipoEstablecimiento', sql.VarChar(50), filtros.tipoEstablecimiento);
+  
+  const result = await request.execute('sp_BuscarEstablecimientos');
+  
+  await pool.close();
+  return result.recordset;
+},
+
+// Buscar clientes 
+buscarClientes: async (filtros) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('TextoBusqueda', sql.VarChar(100), filtros.textoBusqueda || null);
+  request.input('PaisResidencia', sql.VarChar(50), filtros.paisResidencia || null);
+  request.input('Provincia', sql.VarChar(50), filtros.provincia || null);
+  request.input('Canton', sql.VarChar(50), filtros.canton || null);
+  const reservacionesBit = filtros.soloConReservaciones === 'true' ? 1 : filtros.soloConReservaciones === 'false' ? 0 : null;
+  request.input('SoloConReservaciones', sql.Bit, reservacionesBit);
+  
+  const result = await request.execute('sp_BuscarClientes');
+  
+  await pool.close();
+  return result.recordset;
+},
+
+// Buscar Empresas de recreacion 
+
+buscarEmpresasRecreacion: async (filtros) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('TextoBusqueda', sql.VarChar(100), filtros.textoBusqueda || null);
+  request.input('TipoActividad', sql.VarChar(50), filtros.tipoActividad || null);
+  request.input('Provincia', sql.VarChar(50), filtros.provincia || null);
+  request.input('Canton', sql.VarChar(50), filtros.canton || null);
+  
+  request.input('PrecioMin', sql.Decimal(10, 2), filtros.precioMin ? parseFloat(filtros.precioMin) : null);
+  request.input('PrecioMax', sql.Decimal(10, 2), filtros.precioMax ? parseFloat(filtros.precioMax) : null);
+  
+  const result = await request.execute('sp_BuscarEmpresasRecreacion');
+  await pool.close();
+  
+  return result.recordset;
+},
+
+
+
+
 
 
 
