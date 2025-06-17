@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
+import adminHero from '../images/imagen1.webp'
 
 const AdminHome = () => {
   const navigate = useNavigate();
@@ -9,8 +10,7 @@ const AdminHome = () => {
       <HeroSection
         title="PANEL DE ADMINISTRACIÓN"
         subtitle="Gestiona tu hotel con nuestras herramientas profesionales"
-        backgroundImage="/images/admin-hero.jpg"
-        overlayOpacity={0.7}
+        backgroundImage={adminHero}
         buttons={[
           {
             label: "Gestionar Habitaciones",

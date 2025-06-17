@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
+import clientHero from '../images/imagen1.jpg'
 
 const ClientHome = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const ClientHome = () => {
       <HeroSection
         title="EXPLORA LOS MEJORES HOSPEDAJES"
         subtitle="Encuentra tu alojamiento ideal en Limón"
-        backgroundImage="/images/imagen1.jpg"
+        backgroundImage={clientHero}
         buttons={[{
           label: "Buscar Hospedajes",
           onClick: () => navigate('/lodging')
