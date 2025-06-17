@@ -746,58 +746,25 @@ app.delete('/api/empresas-recreacion/:id', async (req, res) => {
 
 // REPORTES -----------------------------------------------------------------------------------------------------------------------
 
-// Reporte de facturación
+// Reporte de facturacion
 app.get('/api/reportes/facturacion', async (req, res) => {
+  const { fechaInicio, fechaFin } = req.query;
+
+  if (!fechaInicio || !fechaFin) {
+    return res.status(400).json({ error: 'fechaInicio y fechaFin son requeridos' });
+  }
+
   try {
-    const { fechaInicio, fechaFin } = req.query;
-    
-    if (!fechaInicio || !fechaFin) {
-      return res.status(400).json({
-        success: false,
-        error: 'Los parámetros fechaInicio y fechaFin son requeridos'
-      });
-    }
-    const fechaInicioDate = new Date(fechaInicio);
-    const fechaFinDate = new Date(fechaFin);
-    
-
-    if (fechaFinDate < fechaInicioDate) {
-      return res.status(400).json({
-        success: false,
-        error: 'La fecha final debe ser mayor o igual a la fecha inicial'
-      });
-    }
-
-    const reporte = await dbService.obtenerReporteFacturacion(fechaInicio,fechaFin);
-
-    if (!reporte || reporte.length === 0) {
-      return res.status(404).json({
-        success: true,
-        data: {
-          fechaInicio,
-          fechaFin,
-          cantidadFacturas: 0,
-          totalFacturado: 0
-        },
-        message: 'No se encontraron facturas en el rango de fechas especificado'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: reporte[0] 
+    const reporte = await dbService.obtenerReporteFacturacion(fechaInicio, fechaFin);
+    res.json(reporte[0] || { 
+      fechaInicio, 
+      fechaFin, 
+      cantidadFacturas: 0, 
+      totalFacturado: 0 
     });
-
   } catch (error) {
-    console.error('Error generando reporte de facturación:', {
-      error: error.message,
-      stack: error.stack,
-      queryParams: req.query
-    });
-    res.status(500).json({
-      success: false,
-      error: 'Error interno al generar el reporte de facturación'
-    });
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
   }
 });
 
@@ -824,7 +791,97 @@ app.get('/api/reportes/facturacion-tipo-habitacion/:id', async (req, res) => {
   }
 });
 
-                      // le pedi que simplificara el penultimo procedimiento faltan un par de facturacion 
+// Reporte de total facturado por habitación concreta
+
+app.get('/api/reportes/facturacion-habitacion/:id', async (req, res) => {
+  const idHabitacion = parseInt(req.params.id);
+  
+  if (isNaN(idHabitacion)) {
+    return res.status(400).json({ error: 'ID de habitación inválido' });
+  }
+
+  try {
+    const reporte = await dbService.obtenerTotalFacturadoPorHabitacion(idHabitacion);
+    res.json(reporte[0] || { 
+      idHabitacion,
+      cantidadFacturas: 0, 
+      totalFacturado: 0 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
+  }
+});
+
+// Reporte de reservas finalizadas 
+app.get('/api/reportes/reservaciones-finalizadas-tipo', async (req, res) => {
+  const { fechaInicio, fechaFin } = req.query;
+
+  if (!fechaInicio || !fechaFin) {
+    return res.status(400).json({ error: 'fechaInicio y fechaFin son requeridos' });
+  }
+
+  try {
+    const reporte = await dbService.obtenerReservacionesFinalizadasPorTipo(fechaInicio, fechaFin);
+    res.json(reporte);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
+  }
+});
+
+// Rango de edadaes de los clientes por establecimiento 
+app.get('/api/reportes/rango-edades-establecimiento/:id', async (req, res) => {
+  const idEstablecimiento = parseInt(req.params.id);
+  
+  if (isNaN(idEstablecimiento)) {
+    return res.status(400).json({ error: 'ID de establecimiento inválido' });
+  }
+
+  try {
+    const reporte = await dbService.obtenerRangoEdadesClientes(idEstablecimiento);
+    res.json(reporte);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
+  }
+});
+
+// Hoteles con mayor demanda por fecha 
+
+app.get('/api/reportes/hotel-mayor-demanda', async (req, res) => {
+  const { fechaInicio, fechaFin } = req.query;
+
+  if (!fechaInicio || !fechaFin) {
+    return res.status(400).json({ error: 'fechaInicio y fechaFin son requeridos' });
+  }
+
+  try {
+    const hotel = await dbService.obtenerHotelMayorDemanda(fechaInicio, fechaFin);
+    res.json(hotel[0] || { message: 'No se encontraron reservaciones en el rango de fechas' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
+  }
+});
+
+// Hoteles con mayor demanda por provincia 
+app.get('/api/reportes/hotel-mayor-demanda-provincia', async (req, res) => {
+  const { provincia } = req.query;
+
+  if (!provincia) {
+    return res.status(400).json({ error: 'El parámetro provincia es requerido' });
+  }
+
+  try {
+    const hotel = await dbService.obtenerHotelMayorDemandaProvincia(provincia);
+    res.json(hotel[0] || { message: 'No se encontraron hoteles en la provincia especificada' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar reporte' });
+  }
+});
+
 
 const PORT = 3001;
 app.listen(PORT, () => {

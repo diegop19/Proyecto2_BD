@@ -534,37 +534,16 @@ eliminarEmpresaRecreacion: async (idEmpresa) => {
 
 // reporte de facturacion 
 obtenerReporteFacturacion: async (fechaInicio, fechaFin) => {
-  let pool;
-  try {
-    pool = await getConnection();
-    const request = pool.request();
-    
-    // Configurar parámetros
-    request.input('FechaInicio', sql.Date, fechaInicio);
-    request.input('FechaFin', sql.Date, fechaFin);
-    
-    // Ejecutar el stored procedure
-    const result = await request.execute('sp_ReporteFacturacion');
-    
-    return result.recordset;
-    
-  } catch (error) {
-    console.error('Error en dbService.obtenerReporteFacturacion:', {
-      fechaInicio,
-      fechaFin,
-      error: error.message,
-      stack: error.stack
-    });
-    throw error;
-  } finally {
-    if (pool) {
-      try {
-        await pool.close();
-      } catch (err) {
-        console.error('Error cerrando conexión:', err);
-      }
-    }
-  }
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('FechaInicio', sql.Date, fechaInicio);
+  request.input('FechaFin', sql.Date, fechaFin);
+  
+  const result = await request.execute('sp_ReporteFacturacion');
+  await pool.close();
+  
+  return result.recordset;
 },
 
 // Total facturado por tipo de habitacion 
@@ -578,9 +557,74 @@ obtenerTotalFacturadoPorTipoHabitacion: async (idTipoHabitacion) => {
   
   await pool.close();
   return result.recordset;
+},
+
+// Reporte de total facturado por habitación concreta
+obtenerTotalFacturadoPorHabitacion: async (idHabitacion) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('ID_Habitacion', sql.Int, idHabitacion);
+  const result = await request.execute('sp_TotalFacturadoPorHabitacion');
+  
+  await pool.close();
+  return result.recordset;
+},
+
+// Reporte de reservas finalizadas 
+obtenerReservacionesFinalizadasPorTipo: async (fechaInicio, fechaFin) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('FechaInicio', sql.Date, fechaInicio);
+  request.input('FechaFin', sql.Date, fechaFin);
+  
+  const result = await request.execute('sp_ReporteReservacionesFinalizadasPorTipo');
+  await pool.close();
+  
+  return result.recordset;
+},
+
+// Rango de edadaes de los clientes por establecimiento 
+
+obtenerRangoEdadesClientes: async (idEstablecimiento) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('ID_Establecimiento', sql.Int, idEstablecimiento);
+  const result = await request.execute('sp_RangoEdadesClientesPorEstablecimiento');
+  
+  await pool.close();
+  return result.recordset;
+},
+
+// Hoteles con mayor demanda por fecha 
+
+obtenerHotelMayorDemanda: async (fechaInicio, fechaFin) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('FechaInicio', sql.Date, fechaInicio);
+  request.input('FechaFin', sql.Date, fechaFin);
+  
+  const result = await request.execute('sp_HotelMayorDemandaPorFecha');
+  await pool.close();
+  
+  return result.recordset;
+},
+
+// Hoteles con mayor demanda por provincia 
+obtenerHotelMayorDemandaProvincia: async (provincia) => {
+  const pool = await getConnection();
+  const request = pool.request();
+  
+  request.input('Provincia', sql.VarChar(50), provincia);
+  
+  const result = await request.execute('sp_HotelMayorDemandaPorProvincia');
+  await pool.close();
+  
+  return result.recordset;
 }
-
-
 
 
 
