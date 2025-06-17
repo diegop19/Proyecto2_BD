@@ -9,7 +9,7 @@ const Header = () => {
     <header className="app-header">
       <div className="header-container">
         <Link to="/" className="logo-link">
-          <h1>Sistema Hotelero</h1>
+          <h1>CocoNet</h1>
         </Link>
         
         <nav className="main-nav">
@@ -17,13 +17,13 @@ const Header = () => {
             {isAdmin ? (
               <>
                 <li className="nav-item">
-                  <Link to="/admin/rooms" className="nav-link">
-                    Habitaciones
+                  <Link to="/admin/establishments" className="nav-link">
+                    Establecimientos
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="/admin/reservations" className="nav-link">
-                    Reservaciones
+                    Empresas
                   </Link>
                 </li>
               </>

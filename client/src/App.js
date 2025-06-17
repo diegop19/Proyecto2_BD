@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import ClientHome from './pages/ClientHome';
-import ClientRooms from './pages/ClientRooms';
-import ClientActivities from './pages/ClientActivities';
-import AdminHome from './pages/AdminHome';
-import AdminRooms from './pages/AdminRooms';
-import AdminReservations from './pages/AdminReservations';
+import ClientHome from './pages/clients/ClientHome';
+import ClientRooms from './pages/clients/ClientRooms';
+import ClientActivities from './pages/clients/ClientActivities';
+import AdminHome from './pages/admin/AdminHome';
+import AdminEstablishments from './pages/admin/establishments/AdminEstablishments';
+import AdminEstablishmentsRegister from './pages/admin/establishments/AdminEstablishmentsRegister';
+import AdminReservations from './pages/admin/AdminReservations';
 import './styles/App.css';
 
 function App() {
@@ -19,7 +20,8 @@ function App() {
             <Route path="/lodging" element={<ClientRooms />} />
             <Route path="/activities" element={<ClientActivities />} />
             <Route path="/admin" element={<AdminHome />} />
-            <Route path="/admin/rooms" element={<AdminRooms />} />
+            <Route path="/admin/establishments" element={<AdminEstablishments />} />
+            <Route path="/admin/establishments/register" element={<AdminEstablishmentsRegister />} />
             <Route path="/admin/reservations" element={<AdminReservations />} />
           </Routes>
         </main>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import HeroSection from '../components/HeroSection';
-import clientHero from '../images/imagen1.jpg'
+import HeroSection from '../../components/HeroSection';
+import clientHero from '../../images/imagen1.jpg'
 
 const ClientHome = () => {
   const navigate = useNavigate();
