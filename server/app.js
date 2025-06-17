@@ -882,6 +882,75 @@ app.get('/api/reportes/hotel-mayor-demanda-provincia', async (req, res) => {
   }
 });
 
+// BUSQUEDAS ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Búsqueda de establecimientos
+app.get('/api/establecimientos/buscar', async (req, res) => {
+  try {
+    const filtros = {
+      nombre: req.query.nombre || null,
+      provincia: req.query.provincia || null,
+      canton: req.query.canton || null,
+      servicio: req.query.servicio || null,
+      tipoEstablecimiento: req.query.tipoEstablecimiento || null
+    };
+
+    const resultados = await dbService.buscarEstablecimientos(filtros);
+    res.json(resultados);
+  } catch (error) {
+    console.error('Error en búsqueda de establecimientos:', error);
+    res.status(500).json({ error: 'Error al realizar la búsqueda' });
+  }
+});
+
+// Busqueda de Clientes
+
+app.get('/api/clientes/buscar', async (req, res) => {
+  try {
+    const resultados = await dbService.buscarClientes({
+      textoBusqueda: req.query.busqueda,
+      paisResidencia: req.query.pais,
+      provincia: req.query.provincia,
+      canton: req.query.canton,
+      soloConReservaciones: req.query.reservaciones // 'true' o 'false' (string)
+    });
+    
+    res.json(resultados);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en la búsqueda' });
+  }
+});
+
+// Busqueda de Empresas de recreacion 
+
+app.get('/api/empresas-recreacion/buscar', async (req, res) => {
+  try {
+    const resultados = await dbService.buscarEmpresasRecreacion({
+      textoBusqueda: req.query.busqueda,
+      tipoActividad: req.query.actividad,
+      provincia: req.query.provincia,
+      canton: req.query.canton,
+      precioMin: req.query.precio_min,
+      precioMax: req.query.precio_max
+    });
+    
+    res.json(resultados);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en la búsqueda' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
 
 const PORT = 3001;
 app.listen(PORT, () => {
