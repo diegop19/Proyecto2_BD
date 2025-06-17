@@ -1,5 +1,3 @@
-import HeroSection from '../components/HeroSection';
-
 const ClientRooms = () => {
   return (
     <div>
