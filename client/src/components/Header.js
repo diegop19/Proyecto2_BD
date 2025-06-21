@@ -8,27 +8,36 @@ const Header = () => {
   return (
     <header className="app-header">
       <div className="header-container">
-        <Link to="/" className="logo-link">
-          <h1>CocoNet</h1>
-        </Link>
         
         <nav className="main-nav">
           <ul className="nav-list">
             {isAdmin ? (
               <>
+              <Link to="/admin" className="logo-link">
+                <h1>CocoNet</h1>
+              </Link>
                 <li className="nav-item">
                   <Link to="/admin/establishments" className="nav-link">
                     Establecimientos
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="/admin/reservations" className="nav-link">
+                  <Link to="/admin/companies" className="nav-link">
                     Empresas
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/admin/reservations" className="nav-link">
+                    Reservaciones
                   </Link>
                 </li>
               </>
             ) : (
               <>
+              <Link to="/" className="logo-link">
+                <h1>CocoNet</h1>
+              </Link>
+
                 <li className="nav-item">
                   <Link to="/lodging" className="nav-link">
                     Hospedajes
