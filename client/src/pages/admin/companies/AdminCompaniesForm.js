@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 const AdminCompaniesForm = () => {
   const navigate = useNavigate();
   const params = useParams();
-  const { mode } = params;
+  const { mode, id } = params;
 
   const isEditMode = mode === 'edit';
 

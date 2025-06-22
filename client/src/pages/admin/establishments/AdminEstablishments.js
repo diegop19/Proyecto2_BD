@@ -23,7 +23,7 @@ const AdminEstablishments = () => {
           + Añadir Habitacion
         </Link>
       </div>
-      <Link 
+        <Link 
           to="/admin/establishments/register" 
           className="text-link"
         >

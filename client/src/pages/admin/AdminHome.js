@@ -13,7 +13,7 @@ const AdminHome = () => {
         backgroundImage={adminHero}
         buttons={[
           {
-            label: "Gestionar Habitaciones",
+            label: "Gestionar Establecimientos",
             onClick: () => navigate('/admin/establishments')
           },
           {

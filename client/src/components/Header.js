@@ -13,9 +13,11 @@ const Header = () => {
           <ul className="nav-list">
             {isAdmin ? (
               <>
-              <Link to="/admin" className="logo-link">
-                <h1>CocoNet</h1>
-              </Link>
+                <li className='nav-item'>
+                  <Link to="/admin" className="logo-link">
+                    <h1>CocoNet</h1>
+                  </Link>
+                </li>
                 <li className="nav-item">
                   <Link to="/admin/establishments" className="nav-link">
                     Establecimientos
@@ -34,10 +36,11 @@ const Header = () => {
               </>
             ) : (
               <>
-              <Link to="/" className="logo-link">
-                <h1>CocoNet</h1>
-              </Link>
-
+                <li className='nav-item'>
+                  <Link to="/" className="logo-link">
+                    <h1>CocoNet</h1>
+                  </Link>
+                </li>
                 <li className="nav-item">
                   <Link to="/lodging" className="nav-link">
                     Hospedajes
