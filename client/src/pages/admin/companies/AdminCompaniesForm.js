@@ -1,21 +1,25 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const AdminCompaniesRegister = () => {
+const AdminCompaniesForm = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  const { mode } = params;
+
+  const isEditMode = mode === 'edit';
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/admin/companies'); // Redirigir al listado después de guardar
+    navigate('/admin/companies');
   };
 
   return (
     <div className="register-container">
       <div className="register-header">
-        <h2>Registrar Nueva Empresa</h2>
+        <h2>{isEditMode ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
+      <div className="form-group">
           <label>Nombre:</label>
           <input 
             type="text"
@@ -122,19 +126,19 @@ const AdminCompaniesRegister = () => {
 
         <div className="form-actions">
           <button type="submit" className="submit-btn">
-            Guardar Empresa
+            {isEditMode ? 'Actualizar Empresa' : 'Guardar Empresa'}
           </button>
         </div>
       </form>
 
       <button 
-          onClick={() => navigate('/admin/companies')} 
-          className="text-link"
-        >
-          ← Volver al listado
-        </button>
+        onClick={() => navigate('/admin/companies')} 
+        className="text-link"
+      >
+        ← Volver al listado
+      </button>
     </div>
   );
 };
 
-export default AdminCompaniesRegister;
+export default AdminCompaniesForm;

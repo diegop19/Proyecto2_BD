@@ -1,17 +1,21 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const AdminEstablishmentsRegister = () => {
+const AdminEstablishmentsForm = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  const { mode } = params;
+
+  const isEditMode = mode === 'edit';
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/admin/establishments'); // Redirigir al listado después de guardar
+    navigate('/admin/companies');
   };
 
   return (
     <div className="register-container">
       <div className="register-header">
-        <h2>Registrar Nuevo Establecimiento</h2>
+        <h2>{isEditMode ? 'Editar Establecimiento' : 'Registrar Nuevo Establecimiento'}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
@@ -212,7 +216,7 @@ const AdminEstablishmentsRegister = () => {
 
         <div className="form-actions">
           <button type="submit" className="submit-btn">
-            Guardar Establecimiento
+            {isEditMode ? "Actualizar Establecimiento" : "Guardar Establecimiento"}
           </button>
         </div>
       </form>
@@ -227,4 +231,4 @@ const AdminEstablishmentsRegister = () => {
   );
 };
 
-export default AdminEstablishmentsRegister;
+export default AdminEstablishmentsForm;

@@ -1,17 +1,21 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const AdminRoomsTypeRegister = () => {
+const AdminRoomsTypesForm = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  const { mode } = params;
+
+  const isEditMode = mode === 'edit';
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/admin/establishments'); // Redirigir al listado después de guardar
+    navigate('/admin/establishments');
   };
 
   return (
     <div className="register-container">
       <div className="register-header">
-        <h2>Registrar Nuevo Tipo de Habitacion</h2>
+        <h2>{isEditMode ? 'Editar Tipo de Habitacion' : 'Registrar Nuevo Tipo de Habitacion'}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
@@ -47,7 +51,7 @@ const AdminRoomsTypeRegister = () => {
 
         <div className="form-actions">
           <button type="submit" className="submit-btn">
-            Guardar Tipo de Habitacion
+            {isEditMode ? "Actualizar Tipo de Habitacion" : "Guardar Tipo de Habitacion"}
           </button>
         </div>
       </form>
@@ -62,4 +66,4 @@ const AdminRoomsTypeRegister = () => {
   );
 };
 
-export default AdminRoomsTypeRegister;
+export default AdminRoomsTypesForm;

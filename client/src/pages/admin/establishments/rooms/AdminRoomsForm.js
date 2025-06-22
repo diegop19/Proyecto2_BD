@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-const AdminRoomsRegister = () => {
+const AdminRoomsForm = () => {
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -69,4 +69,4 @@ const AdminRoomsRegister = () => {
   );
 };
 
-export default AdminRoomsRegister;
+export default AdminRoomsForm;
