@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../../components/HeroSection';
-import adminHero from '../../images/imagen1.webp'
+import adminHero from '../../images/Imagen1.webp'
 
 const AdminHome = () => {
   const navigate = useNavigate();

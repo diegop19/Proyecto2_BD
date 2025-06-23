@@ -85,14 +85,14 @@ app.post('/api/establecimientos', async (req, res) => {
       telefono1: req.body.telefono1 || null,
       telefono2: req.body.telefono2 || null,
       email: req.body.email || null,
-      web_url: req.body.web_url || null,
-      facebook_url: req.body.facebook_url || null,
-      instagram_url: req.body.instagram_url || null,
-      youtube_url: req.body.youtube_url || null,
-      tiktok_url: req.body.tiktok_url || null,
-      airbnb_url: req.body.airbnb_url || null,
-      threads_url: req.body.threads_url || null,
-      x_url: req.body.x_url || null,
+      webURL: req.body.webURL || null,
+      facebookURL: req.body.facebookURL || null,
+      instagramURL: req.body.instagramURL || null,
+      youtubeURL: req.body.youtubeURL || null,
+      tiktokURL: req.body.tiktokURL || null,
+      airbnbURL: req.body.airbnbURL || null,
+      threadsURL: req.body.threadsURL || null,
+      xURL: req.body.xURL || null,
     };
 
     const idEstablecimiento = await dbService.insertarEstablecimiento(establecimientoData);
