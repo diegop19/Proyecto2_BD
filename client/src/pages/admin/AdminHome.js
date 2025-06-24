@@ -15,11 +15,6 @@ const AdminHome = () => {
           {
             label: "Gestionar Establecimientos",
             onClick: () => navigate('/admin/establishments')
-          },
-          {
-            label: "Ver Reservaciones",
-            variant: "secondary",
-            onClick: () => navigate('/admin/reservations')
           }
         ]}
       />
