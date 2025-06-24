@@ -10,7 +10,7 @@ const AdminEstablishments = () => {
         {/* Listado de habitaciones existentes */}
         <p>No hay establecimientos registrados aún.</p>
         <Link 
-          to="/admin/establishments/rooms/type/register" 
+          to="/admin/establishments/rooms/types/register" 
           className="text-link"
         >
           + Añadir Tipo de Habitacion
