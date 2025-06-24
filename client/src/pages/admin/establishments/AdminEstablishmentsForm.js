@@ -23,6 +23,7 @@ const AdminEstablishmentsForm = () => {
   'Cuarto compartido',
   'Cabaña'
 ];
+
 // agregar estado para el tipo seleccionado
   const [selectedTipo, setSelectedTipo] = useState('');
 
@@ -78,7 +79,7 @@ const AdminEstablishmentsForm = () => {
       }
     };
 
-    cargarDistritos();
+    cargarDistritos();  
   }, [selectedCanton]);
 
   useEffect(() => {
@@ -103,113 +104,123 @@ const AdminEstablishmentsForm = () => {
     }, []);
 
  
-  
-  const guardarEstablecimiento = async (formData) => {
-  try {
-    // 1. Insertar dirección
-    const direccionData = {
-      codigoProvincia: "7", 
-      codigoCanton: selectedCanton,
-      codigoDistrito: selectedDistrito,
-      codigoBarrio: selectedBarrio,
-      senasExactas: formData.senasExactas,
-      gps: formData.gps
-    };
-
-    const responseDireccion = await fetch('/api/direcciones', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(direccionData)
-    });
-
-    if (!responseDireccion.ok) throw new Error('Error al guardar dirección');
-    const { idDireccion } = await responseDireccion.json();
-
-    // 2. Insertar establecimiento
-    const establecimientoData = {
-      nombre: formData.nombre,
-      cedulaJuridica: formData.cedulaJuridica,
-      tipo: selectedTipo,
-      idDireccion: idDireccion,
-      telefono1: formData.telefono1,
-      telefono2: formData.telefono2 || null,
-      email: formData.email,
-      webURL: formData.web_url || null,
-      facebookURL: formData.facebook_url || null,
-      instagramURL: formData.instagram_url || null,
-      youtubeURL: formData.youtube_url || null,
-      tiktokURL: formData.tiktok_url || null,
-      airbnbURL: formData.airbnb_url || null,
-      threadsURL: formData.threads_url || null,
-      xURL: formData.x_url || null
-    };
-
-    const responseEstablecimiento = await fetch('/api/establecimientos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(establecimientoData)
-    });
-
-    if (!responseEstablecimiento.ok) throw new Error('Error al guardar establecimiento');
-    const { idEstablecimiento } = await responseEstablecimiento.json();
-
-    // 3. Asignar servicios
-    await Promise.all(
-      serviciosSeleccionados.map(async idServicio => {
-        const response = await fetch(`/api/establecimientos/${idEstablecimiento}/servicios/${idServicio}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        if (!response.ok) throw new Error(`Error asignando servicio ${idServicio}`);
-      })
-    );
-
-      return idEstablecimiento;
-    } catch (error) {
-      console.error('Error en el proceso completo:', error);
-      throw error;
-    }
-  };
 
 
 
 const handleSubmit = async (e) => {
   e.preventDefault();
   const form = e.target;
-  
-  const formData = {
-    nombre: form.nombre.value,
-    cedulaJuridica: form.cedulaJuridica.value,
-    senasExactas: form.senasExactas.value,
-    gps: form.gps.value,
-    telefono1: form.telefono1.value,
-    telefono2: form.telefono2?.value || null,  // Opcional con ?.
-    email: form.email.value,
-    webURL: form.web_url?.value || null,      // Opcional con ?.
-    facebookURL: form.facebook_url?.value || null,
-    instagramURL: form.instagram_url?.value || null,
-    youtubeURL: form.youtube_url?.value || null,
-    tiktokURL: form.tiktok_url?.value || null,
-    airbnbURL: form.airbnb_url?.value || null,
-    threadsURL: form.threads_url?.value || null,
-    xURL: form.x_url?.value || null
-  };
 
   try {
-    const idEstablecimiento = await guardarEstablecimiento(formData);
-    alert(`Establecimiento guardado exitosamente con ID: ${idEstablecimiento}`);
-    navigate('/admin/establishments');
-  } catch (error) {
-    alert('Error al guardar el establecimiento: ' + error.message);
-  }
+    // 1. Insertar dirección
+    const direccionData = {
+      codigoProvincia: '7', 
+      codigoCanton: selectedCanton,
+      codigoDistrito: selectedDistrito,
+      codigoBarrio: selectedBarrio,
+      senasExactas: form.senasExactas.value,
+      gps: form.gps.value || null
+    };
+
+    const dirResponse = await fetch('/api/direcciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(direccionData)
+    });
+
+    if (!dirResponse.ok) throw new Error('Error al insertar la dirección');
+    const dirResult = await dirResponse.json(); 
+    const idDireccion = dirResult.idDireccion;
+
+    // 2. Insertar establecimiento
+    const establecimientoData = {
+      nombre: form.nombre.value,
+      cedulaJuridica: form.cedulaJuridica.value,
+      tipo: selectedTipo,
+      idDireccion: idDireccion,
+      telefono1: form.telefono1.value || null,
+      telefono2: form.telefono2.value || null,
+      email: form.email.value || null,
+      webURL: form.webURL.value || null,
+      facebookURL: form.facebookURL.value || null,
+      instagramURL: form.instagramURL.value || null,
+      youtubeURL: form.youtubeURL.value || null,
+      tiktokURL: form.tiktokURL.value || null,
+      airbnbURL: form.airbnbURL.value || null,
+      threadsURL: form.threadsURL.value || null,
+      xURL: form.xURL.value || null
+    };
+
+    const estResponse = await fetch('/api/establecimientos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(establecimientoData)
+    });
+
+    if (!estResponse.ok) throw new Error('Error al insertar el establecimiento');
+    const estResult = await estResponse.json();
+    const idEstablecimiento = estResult.idEstablecimiento;
+     console.log('Resultado establecimiento:', estResult);
+
+     if (serviciosSeleccionados && serviciosSeleccionados.length > 0) {
+      try {
+        // Usamos Promise.all para hacer todas las asignaciones en paralelo
+        const asignaciones = await Promise.all(
+          serviciosSeleccionados.map(async (idServicio) => {
+            const response = await fetch(`/api/establecimientos/${idEstablecimiento}/servicios/${idServicio}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Error asignando servicio ${idServicio}`);
+            }
+            
+            return await response.json();
+          })
+        );
+        
+        console.log('Resultados de asignación de servicios:', asignaciones);
+      } catch (error) {
+        console.error('Error asignando servicios:', error);
+        // Mostramos alerta pero continuamos con el flujo
+        alert(`Establecimiento creado pero hubo un error con algunos servicios: ${error.message}`);
+      }
+    }
+
   
+  // 3. Mostrar mensaje de éxito persistente
+    const mensajeExito = `✅ Establecimiento creado exitosamente!\n\nID Establecimiento: ${idEstablecimiento}\nID Dirección: ${idDireccion}`;
+    
+    // Versión mejorada que evita que el mensaje se cierre automáticamente
+    if (window.confirm(mensajeExito + '\n\n¿Deseas ver más detalles?')) {
+      alert(`Detalles completos:\n\nNombre: ${establecimientoData.nombre}\nTipo: ${establecimientoData.tipo}\nCédula: ${establecimientoData.cedulaJuridica}`);
+    }
+
+    const serviciosAsignados = serviciosSeleccionados?.length || 0;
+    const mensajeExito2 = `✅ Establecimiento creado exitosamente!\n\n` +
+                         `ID: ${idEstablecimiento}\n` +
+                         `Nombre: ${establecimientoData.nombre}\n` +
+                         `Servicios asignados: ${serviciosAsignados}`;
+    
+    alert(mensajeExito2);
+
+
+    form.reset();
+    // Resetear estados si es necesario
+    setSelectedCanton('');
+    setSelectedDistrito('');
+    setSelectedBarrio('');
+    setSelectedTipo('');
+    setServiciosSeleccionados([]);
+
+  } catch (error) {
+    console.error('Error en handleSubmit:', error);
+    alert('Error al procesar el formulario: ' + error.message);
+  }
 };
+
 
 
 
@@ -371,7 +382,7 @@ const handleSubmit = async (e) => {
           <label>Sitio Web (No obligatorio):</label>
           <input 
             type="text"
-             name="web_url" 
+             name="webURL" 
             placeholder="https://tusitio.com"
           />
         </div>
@@ -380,7 +391,7 @@ const handleSubmit = async (e) => {
           <label>Facebook (No obligatorio):</label>
           <input 
             type="text"
-             name="facebook_url" 
+             name="facebookURL" 
             placeholder="facebook.com/tupagina"
           />
         </div>
@@ -389,7 +400,7 @@ const handleSubmit = async (e) => {
           <label>Instagram (No obligatorio):</label>
           <input 
             type="text"
-             name="instagram_url" 
+             name="instagramURL" 
             placeholder="instagram.com/tucuenta"
           />
         </div>
@@ -398,7 +409,7 @@ const handleSubmit = async (e) => {
           <label>YouTube (No obligatorio):</label>
           <input 
             type="text"
-             name="youtube_url" 
+             name="youtubeURL" 
             placeholder="youtube.com/tucanal"
           />
         </div>
@@ -407,7 +418,7 @@ const handleSubmit = async (e) => {
           <label>TikTok (No obligatorio):</label>
           <input 
             type="text"
-             name="tiktok_url" 
+             name="tiktokURL" 
             placeholder="tiktok.com/@tucuenta"
           />
         </div>
@@ -416,7 +427,7 @@ const handleSubmit = async (e) => {
           <label>Airbnb (No obligatorio):</label>
           <input 
             type="text"
-             name="airbnb_url" 
+             name="airbnbURL" 
             placeholder="airbnb.com/tualojamiento"
           />
         </div>
@@ -425,7 +436,7 @@ const handleSubmit = async (e) => {
           <label>Threads (No obligatorio):</label>
           <input 
             type="text"
-             name="threads_url" 
+             name="threadsURL" 
             placeholder="threads.net/@tucuenta"
           />
         </div>
@@ -434,7 +445,7 @@ const handleSubmit = async (e) => {
           <label>X/Twitter (No obligatorio):</label>
           <input 
             type="text"
-             name="x_url" 
+             name="xURL" 
             placeholder="x.com/tucuenta"
           />
         </div>

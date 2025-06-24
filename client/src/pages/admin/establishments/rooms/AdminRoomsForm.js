@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const AdminRoomsForm = () => {
   const navigate = useNavigate();
-  const { mode, id } = useParams();
+  const { idEstablecimiento, mode, id } = useParams();
   const isEditMode = mode === 'edit';
 
   // Estados para el formulario
@@ -17,60 +17,56 @@ const AdminRoomsForm = () => {
   const [tiposHabitacion, setTiposHabitacion] = useState([]);
   const [comodidades, setComodidades] = useState([]);
   const [comodidadesSeleccionadas, setComodidadesSeleccionadas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Cargar datos para edición
+  // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {
-      if (!isEditMode) return;
-
       try {
-        // 1. Cargar datos básicos de la habitación
-        const responseHabitacion = await fetch(`/api/habitaciones/${id}`);
-        const dataHabitacion = await responseHabitacion.json();
-        
-        setFormData({
-          idTipoHabitacion: dataHabitacion.IDTipoHabitacion,
-          numero: dataHabitacion.Numero,
-          estado: dataHabitacion.Estado
-        });
+        // Cargar tipos de habitación para este establecimiento
+        const tiposResponse = await fetch(`/api/establecimientos/${idEstablecimiento}/tipos-habitacion`);
+        if (!tiposResponse.ok) throw new Error('Error cargando tipos de habitación');
+        const tiposData = await tiposResponse.json();
+        setTiposHabitacion(tiposData);
 
-        // 2. Cargar comodidades seleccionadas
-        const responseComodidades = await fetch(`/api/habitaciones/${id}/comodidades`);
-        const comodidadesData = await responseComodidades.json();
-        setComodidadesSeleccionadas(comodidadesData.map(c => c.IDComodidad));
+        // Cargar todas las comodidades disponibles
+        const comodidadesResponse = await fetch('/api/comodidades');
+        if (!comodidadesResponse.ok) throw new Error('Error cargando comodidades');
+        const comodidadesData = await comodidadesResponse.json();
+        setComodidades(comodidadesData);
 
+        // Si es modo edición, cargar datos de la habitación
+        if (isEditMode) {
+          const habitacionResponse = await fetch(`/api/habitaciones/${id}`);
+          if (!habitacionResponse.ok) throw new Error('Error cargando datos de habitación');
+          const habitacionData = await habitacionResponse.json();
+          
+          setFormData({
+            idTipoHabitacion: habitacionData.IDTipoHabitacion,
+            numero: habitacionData.Numero,
+            estado: habitacionData.Estado
+          });
+
+          // Cargar comodidades asignadas a esta habitación
+          const comodidadesHabitacionResponse = await fetch(`/api/habitaciones/${id}/comodidades`);
+          if (!comodidadesHabitacionResponse.ok) throw new Error('Error cargando comodidades de habitación');
+          const comodidadesHabitacion = await comodidadesHabitacionResponse.json();
+          
+          setComodidadesSeleccionadas(comodidadesHabitacion.map(c => c.IDComodidad));
+        }
+
+        setLoading(false);
       } catch (error) {
-        console.error('Error cargando datos:', error);
-        navigate('/admin/establishments', { replace: true });
+        console.error('Error:', error);
+        setError(error.message);
+        setLoading(false);
       }
     };
 
     cargarDatos();
-  }, [id, isEditMode, navigate]);
+  }, [idEstablecimiento, id, isEditMode]);
 
-  // Cargar tipos de habitación y comodidades
-  useEffect(() => {
-    const cargarDatosRelacionados = async () => {
-      try {
-        // Cargar tipos de habitación
-        const responseTipos = await fetch('/api/tipos-habitacion');
-        const tiposData = await responseTipos.json();
-        setTiposHabitacion(tiposData);
-
-        // Cargar comodidades disponibles
-        const responseComodidades = await fetch('/api/comodidades');
-        const comodidadesData = await responseComodidades.json();
-        setComodidades(comodidadesData);
-
-      } catch (error) {
-        console.error('Error cargando datos relacionados:', error);
-      }
-    };
-
-    cargarDatosRelacionados();
-  }, []);
-
-  // Manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -79,28 +75,31 @@ const AdminRoomsForm = () => {
     }));
   };
 
-  // Manejar selección de comodidades
-  const handleComodidadChange = (idComodidad) => {
-    setComodidadesSeleccionadas(prev => {
-      if (prev.includes(idComodidad)) {
-        return prev.filter(id => id !== idComodidad);
-      } else {
-        return [...prev, idComodidad];
-      }
-    });
+  const toggleComodidad = (idComodidad) => {
+    setComodidadesSeleccionadas(prev => 
+      prev.includes(idComodidad)
+        ? prev.filter(id => id !== idComodidad)
+        : [...prev, idComodidad]
+    );
   };
 
-  // Guardar habitación y comodidades
-  const guardarHabitacion = async (formData) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
-      // 1. Guardar datos básicos de la habitación
+      // Validación básica
+      if (!formData.idTipoHabitacion || !formData.numero) {
+        throw new Error('Debe completar todos los campos requeridos');
+      }
+
+      // 1. Guardar/actualizar la habitación
       const url = isEditMode 
         ? `/api/habitaciones/${id}`
         : '/api/habitaciones';
       
       const method = isEditMode ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const habitacionResponse = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -110,77 +109,109 @@ const AdminRoomsForm = () => {
         })
       });
 
-      if (!response.ok) throw new Error('Error al guardar habitación');
-      
-      const data = await response.json();
-      const idHabitacion = isEditMode ? id : data.idHabitacion;
+      if (!habitacionResponse.ok) {
+        const errorData = await habitacionResponse.json();
+        throw new Error(errorData.error || 'Error al guardar la habitación');
+      }
 
-      // 2. Asignar comodidades (solo si es creación o si cambian)
-      if (!isEditMode || comodidadesSeleccionadas.length > 0) {
+      const result = await habitacionResponse.json();
+      const idHabitacion = isEditMode ? id : result.idHabitacion;
+
+      // 2. Actualizar comodidades (solo si hay cambios)
+      if (comodidadesSeleccionadas.length > 0) {
+        // Primero eliminamos todas las comodidades existentes (en modo edición)
+        if (isEditMode) {
+          await fetch(`/api/habitaciones/${idHabitacion}/comodidades`, {
+            method: 'DELETE'
+          });
+        }
+
+        // Luego asignamos las nuevas comodidades
         await Promise.all(
           comodidadesSeleccionadas.map(async idComodidad => {
-            const res = await fetch(`/api/habitaciones/${idHabitacion}/comodidades/${idComodidad}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            });
-            if (!res.ok) throw new Error(`Error asignando comodidad ${idComodidad}`);
+            const response = await fetch(
+              `/api/habitaciones/${idHabitacion}/comodidades/${idComodidad}`, 
+              { method: 'POST' }
+            );
+            if (!response.ok) throw new Error(`Error asignando comodidad ${idComodidad}`);
           })
         );
       }
 
-      return idHabitacion;
+      alert(`Habitación ${isEditMode ? 'actualizada' : 'creada'} exitosamente!`);
+      navigate(`/admin/establishments/${idEstablecimiento}/rooms`);
 
     } catch (error) {
-      console.error('Error en el proceso:', error);
-      throw error;
+      alert(`Error: ${error.message}`);
+      console.error('Error en handleSubmit:', error);
     }
   };
 
-  // Manejar envío del formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      await guardarHabitacion(formData);
-      alert(`Habitación ${isEditMode ? 'actualizada' : 'registrada'} exitosamente`);
-      navigate('/admin/establishments');
-    } catch (error) {
-      alert(`Error al ${isEditMode ? 'actualizar' : 'guardar'} la habitación: ${error.message}`);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="register-container">
+        <div className="register-header">
+          <h2>{isEditMode ? 'Editar Habitación' : 'Registrar Nueva Habitación'}</h2>
+        </div>
+        <p>Cargando datos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="register-container">
+        <div className="register-header">
+          <h2>{isEditMode ? 'Editar Habitación' : 'Registrar Nueva Habitación'}</h2>
+        </div>
+        <p className="error-message">Error: {error}</p>
+        <button onClick={() => window.location.reload()} className="retry-btn">
+          Reintentar
+        </button>
+        <button 
+          onClick={() => navigate(`/admin/establishments/${idEstablecimiento}/rooms`)} 
+          className="text-link"
+        >
+          ← Volver al listado
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="register-container">
       <div className="register-header">
         <h2>{isEditMode ? 'Editar Habitación' : 'Registrar Nueva Habitación'}</h2>
+        <p>Establecimiento ID: {idEstablecimiento}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
-          <label>Tipo de Habitación:</label>
+          <label>Tipo de Habitación: *</label>
           <select
             name="idTipoHabitacion"
             value={formData.idTipoHabitacion}
             onChange={handleChange}
             required
           >
-            <option value="" disabled hidden>Seleccione el tipo de Habitación</option>
+            <option value="" disabled>Seleccione un tipo</option>
             {tiposHabitacion.map(tipo => (
               <option key={tipo.IDTipoHabitacion} value={tipo.IDTipoHabitacion}>
-                {tipo.Nombre}
+                {tipo.Nombre} - {tipo.TipoCama} (₡{tipo.Precio.toLocaleString()})
               </option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
-          <label>Número:</label>
+          <label>Número de Habitación: *</label>
           <input 
             type="text"
             name="numero"
             value={formData.numero}
             onChange={handleChange}
             required
+            placeholder="Ej. 101, 202-A, etc."
           />
         </div>
 
@@ -194,40 +225,44 @@ const AdminRoomsForm = () => {
             >
               <option value="Disponible">Disponible</option>
               <option value="Ocupada">Ocupada</option>
-              <option value="Mantenimiento">En mantenimiento</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Limpieza">En limpieza</option>
             </select>
           </div>
         )}
 
-        <div className="options-section">
-          <h3>Comodidades Ofrecidas</h3>
-          <div className="options-checkbox-group">
+        <div className="form-group">
+          <label>Comodidades:</label>
+          <div className="comodidades-grid">
             {comodidades.map(comodidad => (
-              <label key={comodidad.IDComodidad} className="options-checkbox">
-                <input 
+              <div key={comodidad.IDComodidad} className="comodidad-item">
+                <input
                   type="checkbox"
+                  id={`comodidad-${comodidad.IDComodidad}`}
                   checked={comodidadesSeleccionadas.includes(comodidad.IDComodidad)}
-                  onChange={() => handleComodidadChange(comodidad.IDComodidad)}
+                  onChange={() => toggleComodidad(comodidad.IDComodidad)}
                 />
-                <span>{comodidad.Nombre}</span>
-              </label>
+                <label htmlFor={`comodidad-${comodidad.IDComodidad}`}>
+                  {comodidad.Nombre}
+                </label>
+              </div>
             ))}
           </div>
         </div>
 
         <div className="form-actions">
           <button type="submit" className="submit-btn">
-            {isEditMode ? "Actualizar Habitación" : "Guardar Habitación"}
+            {isEditMode ? "Actualizar Habitación" : "Registrar Habitación"}
+          </button>
+          <button 
+            type="button"
+            onClick={() => navigate(`/admin/establishments/${idEstablecimiento}/rooms`)}
+            className="cancel-btn"
+          >
+            Cancelar
           </button>
         </div>
       </form>
-
-      <button 
-        onClick={() => navigate('/admin/establishments')} 
-        className="text-link"
-      >
-        ← Volver al listado
-      </button>
     </div>
   );
 };

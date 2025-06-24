@@ -4,8 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 const AdminRoomsTypesForm = () => {
   const navigate = useNavigate();
   const params = useParams();
-  const { mode, id } = params;
-
+  const { idEstablecimiento, mode, id } = params;
   const isEditMode = mode === 'edit';
 
   // Estados 
@@ -16,32 +15,31 @@ const AdminRoomsTypesForm = () => {
     precio: ''
   });
 
-  // Cargar datos para edición 
   useEffect(() => {
     if (!isEditMode) return;
 
     const cargarDatos = async () => {
       try {
-        const response = await fetch(`/api/tipos-habitacion/${id}`);
-        const data = await response.json();
+        const response = await fetch(`/api/establecimientos/${idEstablecimiento}/tipos-habitacion/${id}`);
+        if (!response.ok) throw new Error('Error cargando datos');
         
-        // Mapear datos igual que en Establishments
+        const data = await response.json();
         setFormData({
-          nombre: data.Nombre,
-          descripcion: data.Descripcion,
-          tipoCama: data.TipoCama,
-          precio: data.Precio
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          tipoCama: data.tipoCama || '',
+          precio: data.precio.toString()
         });
       } catch (error) {
         console.error('Error cargando datos:', error);
-        navigate('/admin/establishments/rooms/types', { replace: true });
+        alert('Error al cargar datos: ' + error.message);
+        navigate(`/admin/establishments/${idEstablecimiento}/rooms/types`, { replace: true });
       }
     };
 
     cargarDatos();
-  }, [id, isEditMode, navigate]);
+  }, [idEstablecimiento, id, isEditMode, navigate]);
 
-  // handleChange igual que en Establishments
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -50,12 +48,11 @@ const AdminRoomsTypesForm = () => {
     }));
   };
 
-  // Función guardar 
   const guardarTipoHabitacion = async (formData) => {
     try {
       const url = isEditMode 
-        ? `/api/tipos-habitacion/${id}`
-        : '/api/tipos-habitacion';
+        ? `/api/establecimientos/${idEstablecimiento}/tipos-habitacion/${id}`
+        : `/api/establecimientos/${idEstablecimiento}/tipos-habitacion`;
       
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -66,27 +63,37 @@ const AdminRoomsTypesForm = () => {
           nombre: formData.nombre,
           descripcion: formData.descripcion,
           tipoCama: formData.tipoCama,
-          precio: parseFloat(formData.precio)
+          precio: formData.precio,
+          cantidad: 1 
         })
       });
 
-      if (!response.ok) throw new Error('Error al guardar');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al guardar');
+      }
+      
       return await response.json();
-
     } catch (error) {
       console.error('Error:', error);
       throw error;
     }
   };
 
-  // handleSubmit idéntico a Establishments
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!formData.nombre || !formData.precio) {
+      alert('Por favor complete todos los campos requeridos (nombre y precio)');
+      return;
+    }
+
     try {
-      await guardarTipoHabitacion(formData);
-      alert(`Tipo de habitación ${isEditMode ? 'actualizado' : 'guardado'} correctamente`);
-      navigate('/admin/establishments/rooms/types');
+      const result = await guardarTipoHabitacion(formData);
+      const idTipoHabitacion = isEditMode ? id : result.idTipoHabitacion;
+      
+      alert(`Tipo de habitación ${isEditMode ? 'actualizado' : 'creado'} con éxito!\nID: ${idTipoHabitacion}`);
+      navigate(`/admin/establishments/${idEstablecimiento}/rooms/types`);
     } catch (error) {
       alert(`Error al ${isEditMode ? 'actualizar' : 'guardar'}: ${error.message}`);
     }
@@ -95,13 +102,13 @@ const AdminRoomsTypesForm = () => {
   return (
     <div className="register-container">
       <div className="register-header">
-        <h2>{isEditMode ? 'Editar Tipo de Habitacion' : 'Registrar Nuevo Tipo de Habitacion'}</h2>
+        <h2>{isEditMode ? 'Editar Tipo de Habitación' : 'Registrar Nuevo Tipo de Habitación'}</h2>
+        <p>Establecimiento ID: {idEstablecimiento}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="form">
-        {/* Campos con value y onChange añadidos (como debería tener Establishments) */}
         <div className="form-group">
-          <label>Nombre:</label>
+          <label>Nombre:*</label>
           <input 
             type="text"
             name="nombre"
@@ -112,13 +119,12 @@ const AdminRoomsTypesForm = () => {
         </div>
 
         <div className="form-group">
-          <label>Descripcion:</label>
+          <label>Descripción:</label>
           <textarea 
             rows="4" 
             name="descripcion"
             value={formData.descripcion}
             onChange={handleChange}
-            required
           />
         </div>
 
@@ -129,35 +135,36 @@ const AdminRoomsTypesForm = () => {
             name="tipoCama"
             value={formData.tipoCama}
             onChange={handleChange}
-            required
           />
         </div>
 
         <div className="form-group">
-          <label>Precio:</label>
+          <label>Precio (CRC):*</label>
           <input 
-            type="text"
+            type="number"
             name="precio"
             value={formData.precio}
             onChange={handleChange}
-            placeholder='En Colones'
+            min="0"
+            step="0.01"
             required
           />
         </div>
 
         <div className="form-actions">
           <button type="submit" className="submit-btn">
-            {isEditMode ? "Actualizar Tipo de Habitacion" : "Guardar Tipo de Habitacion"}
+            {isEditMode ? "Actualizar" : "Guardar"}
+          </button>
+          
+          <button 
+            type="button"
+            onClick={() => navigate(`/admin/establishments/${idEstablecimiento}/rooms/types`)}
+            className="cancel-btn"
+          >
+            Cancelar
           </button>
         </div>
       </form>
-
-      <button 
-        onClick={() => navigate('/admin/establishments/')} 
-        className="text-link"
-      >
-        ← Volver al listado
-      </button>
     </div>
   );
 };

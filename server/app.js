@@ -61,6 +61,7 @@ app.get('/api/direcciones/provincias/:codigoProvincia/cantones/:codigoCanton/dis
 app.post('/api/direcciones', async (req, res) => {
   try {
     const idDireccion = await dbService.insertarDireccion(req.body);
+
     res.status(201).json({ idDireccion });
   } catch (error) {
     console.error('Error al crear dirección:', error);
@@ -76,7 +77,7 @@ app.post('/api/establecimientos', async (req, res) => {
     if (!req.body.nombre || !req.body.cedulaJuridica || !req.body.tipo || !req.body.idDireccion) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
-
+    
     const establecimientoData = {
       nombre: req.body.nombre,
       cedulaJuridica: req.body.cedulaJuridica,
@@ -943,6 +944,15 @@ app.get('/api/empresas-recreacion/buscar', async (req, res) => {
 });
 
 
+app.get('/api/establecimientos/all', async (req, res) => {
+  try {
+    const establecimientos = await dbService.obtenerEstablecimientos();
+    res.json(establecimientos);
+  } catch (error) {
+    console.error('Error al obtener establecimientos:', error);
+    res.status(500).json({ error: 'Error al obtener establecimientos' });
+  }
+});
 
 
 

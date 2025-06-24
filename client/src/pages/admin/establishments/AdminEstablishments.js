@@ -1,123 +1,113 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const AdminEstablishments = () => {
-  // Datos de ejemplo con IDs como números
-  const establecimientos = [
-    {
-      id: 1,
-      nombre: "Hotel Playa Bonita",
-      cedulaJuridica: "3-702-123456",
-      tipo: "Hotel",
-      telefono1: "2758-1234",
-      telefono2: "2758-5678",
-      email: "reservas@playabonita.com",
-      direccion: {
-        provincia: "Limon",
-        canton: "Limon",
-        distrito: "Limon",
-        barrio: "Playa Bonita",
-        senasExactas: "200 metros norte del mirador de Playa Bonita",
-        gps: "P2RV+W2 Limón, Limón Province"
-      },
-      redes: {
-        web: "https://www.playabonita.com",
-        facebook: "https://facebook.com/hotelplayabonita",
-        instagram: "https://instagram.com/hotelplayabonita",
-        youtube: null,
-        tiktok: "https://tiktok.com/@hotelplayabonita",
-        airbnb: null,
-        threads: null,
-        x: null
+  const [establecimientos, setEstablecimientos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchEstablecimientos = async () => {
+      try {
+        const response = await fetch('/api/establecimientos/all');
+        if (!response.ok) {
+          throw new Error('Error al cargar establecimientos');
+        }
+        const data = await response.json();
+        setEstablecimientos(data);
+      } catch (err) {
+        console.error('Error:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    },
-    {
-      id: 2,
-      cedulaJuridica: "3-702-654321",
-      nombre: "Cabañas Cocorí",
-      tipo: "Cabaña",
-      telefono1: "2756-9876",
-      telefono2: null,
-      email: "info@cabanascocori.com",
-      direccion: {
-        provincia: "Limon",
-        canton: "Pococí",
-        distrito: "Guápiles",
-        barrio: "Río Blanco",
-        senasExactas: "Frente al parque central de Río Blanco",
-        gps: "P5GH+Q3 Guápiles, Limón Province"
-      },
-      redes: {
-        web: null,
-        facebook: null,
-        instagram: "https://instagram.com/cabanascocori",
-        youtube: "https://youtube.com/c/CabanasCocori",
-        tiktok: null,
-        airbnb: "https://airbnb.com/h/cabanascocori",
-        threads: null,
-        x: "https://twitter.com/cabanascocori"
-      }
-    }
-  ];
+    };
+
+    fetchEstablecimientos();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="header">
+          <h2>Gestión de Establecimientos</h2>
+        </div>
+        <p>Cargando establecimientos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <div className="header">
+          <h2>Gestión de Establecimientos</h2>
+        </div>
+        <p className="error-message">Error: {error}</p>
+        <button onClick={() => window.location.reload()} className="retry-btn">
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
       <div className="header">
         <h2>Gestión de Establecimientos</h2>
+        <Link 
+          to="/admin/establishments/register" 
+          className="add-btn"
+        >
+          + Añadir Establecimiento
+        </Link>
       </div>
       
       <div className="cards-container">
         {establecimientos.length > 0 ? (
-          <>
-            {establecimientos.map(establecimiento => (
-              <div key={establecimiento.id} className="management-card">
-                <div className="card-content">
-                  <h3>{establecimiento.nombre}</h3>
-                  <div className="card-details">
-                    <p><strong>Tipo:</strong> {establecimiento.tipo}</p>
-                    <p><strong>Teléfono:</strong> {establecimiento.telefono1}</p>
-                    <p><strong>Email:</strong> {establecimiento.email}</p>
-                    <p><strong>Ubicación:</strong> {establecimiento.direccion.canton}, {establecimiento.direccion.distrito}</p>
-                  </div>
-                  <Link 
-                    to={`/admin/establishments/${establecimiento.id}`}
-                    state={{ establecimiento }}
-                    className="text-link"
-                  >
-                    Ver detalles completos →
-                  </Link>
+          establecimientos.map(establecimiento => (
+            <div key={establecimiento.ID_Establecimiento} className="management-card">
+              <div className="card-content">
+                <h3>{establecimiento.Nombre}</h3>
+                <div className="card-details">
+                  <p><strong>Tipo:</strong> {establecimiento.Tipo}</p>
+                  <p><strong>Cédula Jurídica:</strong> {establecimiento.Cedula_Juridica}</p>
+                  <p><strong>Teléfono:</strong> {establecimiento.Telefono1}</p>
+                  {establecimiento.Telefono2 && <p><strong>Teléfono secundario:</strong> {establecimiento.Telefono2}</p>}
+                  <p><strong>Email:</strong> {establecimiento.Email || 'No registrado'}</p>
+                  <p><strong>Ubicación:</strong> {establecimiento.Provincia}, {establecimiento.Canton}, {establecimiento.Distrito}</p>
+                  <p><strong>Barrio:</strong> {establecimiento.Barrio}</p>
                 </div>
-                
-                <div className="card-management-actions">
-                  <Link 
-                    to={`/admin/establishments/edit/${establecimiento.id}`}
-                    className="management-btn secondary-btn"
-                  >
-                    Editar
-                  </Link>
-                  <Link 
-                    to={`/admin/establishments/${establecimiento.id}/rooms/types/register`}
-                    className="management-btn"
-                  >
-                    + Tipo Habitación
-                  </Link>
-                  <Link 
-                    to={`/admin/establishments/${establecimiento.id}/rooms/register`}
-                    className="management-btn"
-                  >
-                    + Habitación
-                  </Link>
-                </div>
+                <Link 
+                  to={`/admin/establishments/${establecimiento.ID_Establecimiento}`}
+                  className="text-link"
+                >
+                  Ver detalles completos →
+                </Link>
               </div>
-            ))}
-            <div className=".container">
-              <Link 
-                to="/admin/establishments/register" 
-                className="text-link"
-              >
-                + Añadir Establecimiento
-              </Link>
+              
+              <div className="card-management-actions">
+                <Link 
+                  to={`/admin/establishments/edit/${establecimiento.ID_Establecimiento}`}
+                  className="management-btn secondary-btn"
+                >
+                  Editar
+                </Link>
+                <Link 
+                  to={`/admin/establishments/${establecimiento.ID_Establecimiento}/rooms/types/register`}
+                  className="management-btn"
+                >
+                  + Tipo Habitación
+                </Link>
+                <Link 
+                  to={`/admin/establishments/${establecimiento.ID_Establecimiento}/rooms/register`}
+                  className="management-btn"
+                >
+                  + Habitación
+                </Link>
+              </div>
             </div>
-          </>
+          ))
         ) : (
           <div className="empty-state">
             <p>No hay establecimientos registrados aún.</p>

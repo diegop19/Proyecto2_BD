@@ -4,10 +4,8 @@ const AdminEstablishmentsDetails = () => {
   const { id } = useParams();
   const { state } = useLocation();
   
-  // Obtenemos el establecimiento desde el estado de navegación
   const establecimiento = state?.establecimiento;
 
-  // Verificación exhaustiva
   if (!establecimiento || establecimiento.id !== Number(id)) {
     return (
       <div className="container">
@@ -21,7 +19,6 @@ const AdminEstablishmentsDetails = () => {
     );
   }
 
-  // Tipos de habitación de ejemplo
   const tiposHabitacion = [
     { id: 1, idEstablecimiento: 1, nombre: "Habitación Standard", precio: 45000, capacidad: 2 },
     { id: 2, idEstablecimiento: 1, nombre: "Suite Junior", precio: 65000, capacidad: 2 },
@@ -30,7 +27,7 @@ const AdminEstablishmentsDetails = () => {
     { id: 5, idEstablecimiento: 2, nombre: "Cabaña Grande", precio: 55000, capacidad: 4 }
   ].filter(t => t.idEstablecimiento === establecimiento.id);
 
-  // Habitaciones de ejemplo
+
   const habitaciones = [
     { id: 1, idTipo: 1, numero: "101", estado: "Disponible" },
     { id: 2, idTipo: 1, numero: "102", estado: "Ocupada" },
