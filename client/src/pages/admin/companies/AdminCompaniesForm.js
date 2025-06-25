@@ -16,20 +16,16 @@ const AdminCompaniesForm = () => {
     descripcion: '',
     senasExactas: '',
     gps: '',
-    idDireccion: null,
-    codigoProvincia: '7', // Asumiendo que siempre es la misma provincia
-    codigoCanton: '',
-    codigoDistrito: '',
-    codigoBarrio: ''
+    idDireccion: null
   });
 
-  // Estados para datos relacionados
+  // Estados para dirección
   const [cantones, setCantones] = useState([]);
   const [distritos, setDistritos] = useState([]);
   const [barrios, setBarrios] = useState([]);
-  const [actividades, setActividades] = useState([]);
-  const [actividadesSeleccionadas, setActividadesSeleccionadas] = useState([]);
-  const [preciosActividades, setPreciosActividades] = useState({});
+  const [selectedCanton, setSelectedCanton] = useState('');
+  const [selectedDistrito, setSelectedDistrito] = useState('');
+  const [selectedBarrio, setSelectedBarrio] = useState('');
 
   // Cargar datos para edición
   useEffect(() => {
@@ -37,17 +33,11 @@ const AdminCompaniesForm = () => {
       if (!isEditMode) return;
 
       try {
-        // 1. Cargar datos básicos de la empresa
         const responseEmpresa = await fetch(`/api/empresas/${id}`);
         const empresaData = await responseEmpresa.json();
         
-        // 2. Cargar dirección
         const responseDireccion = await fetch(`/api/direcciones/${empresaData.ID_Direccion}`);
         const direccionData = await responseDireccion.json();
-
-        // 3. Cargar actividades de la empresa
-        const responseActividades = await fetch(`/api/empresas/${id}/actividades`);
-        const actividadesData = await responseActividades.json();
 
         setFormData({
           nombre: empresaData.Nombre,
@@ -58,22 +48,12 @@ const AdminCompaniesForm = () => {
           descripcion: empresaData.Descripcion,
           senasExactas: direccionData.SenasExactas,
           gps: direccionData.GPS,
-          idDireccion: empresaData.ID_Direccion,
-          codigoProvincia: direccionData.CodigoProvincia,
-          codigoCanton: direccionData.CodigoCanton,
-          codigoDistrito: direccionData.CodigoDistrito,
-          codigoBarrio: direccionData.CodigoBarrio
+          idDireccion: empresaData.ID_Direccion
         });
 
-        // Configurar actividades seleccionadas y precios
-        const nuevasActividades = actividadesData.map(a => a.ID_Tipo_Actividad);
-        const nuevosPrecios = actividadesData.reduce((acc, actividad) => {
-          acc[actividad.ID_Tipo_Actividad] = actividad.Precio;
-          return acc;
-        }, {});
-
-        setActividadesSeleccionadas(nuevasActividades);
-        setPreciosActividades(nuevosPrecios);
+        setSelectedCanton(direccionData.CodigoCanton);
+        setSelectedDistrito(direccionData.CodigoDistrito);
+        setSelectedBarrio(direccionData.CodigoBarrio);
 
       } catch (error) {
         console.error('Error cargando datos:', error);
@@ -84,63 +64,57 @@ const AdminCompaniesForm = () => {
     cargarDatosEmpresa();
   }, [id, isEditMode, navigate]);
 
-  // Cargar cantones, actividades disponibles
+  // Cargar cantones
   useEffect(() => {
-    const cargarDatosIniciales = async () => {
+    const cargarCantones = async () => {
       try {
-        // Cargar cantones
-        const responseCantones = await fetch('/api/direcciones/provincias/7/cantones');
-        const cantonesData = await responseCantones.json();
+        const response = await fetch('/api/direcciones/provincias/7/cantones');
+        const cantonesData = await response.json();
         setCantones(cantonesData);
-
-        // Cargar actividades disponibles
-        const responseActividades = await fetch('/api/actividades');
-        const actividadesData = await responseActividades.json();
-        setActividades(actividadesData);
-
       } catch (error) {
-        console.error('Error cargando datos iniciales:', error);
+        console.error('Error cargando cantones:', error);
       }
     };
 
-    cargarDatosIniciales();
+    cargarCantones();
   }, []);
 
   // Cargar distritos cuando cambia el cantón
   useEffect(() => {
-    const cargarDistritos = async () => {
-      if (!formData.codigoCanton) return;
+    if (!selectedCanton) return;
 
+    const cargarDistritos = async () => {
       try {
-        const response = await fetch(`/api/direcciones/provincias/7/cantones/${formData.codigoCanton}/distritos`);
+        const response = await fetch(`/api/direcciones/provincias/7/cantones/${selectedCanton}/distritos`);
         const data = await response.json();
         setDistritos(data);
-        setFormData(prev => ({ ...prev, codigoDistrito: '', codigoBarrio: '' }));
+        setSelectedDistrito('');
+        setBarrios([]);
       } catch (error) {
         console.error('Error cargando distritos:', error);
       }
     };
 
     cargarDistritos();
-  }, [formData.codigoCanton]);
+  }, [selectedCanton]);
 
   // Cargar barrios cuando cambia el distrito
   useEffect(() => {
-    const cargarBarrios = async () => {
-      if (!formData.codigoDistrito) return;
+    if (!selectedDistrito) return;
 
+    const cargarBarrios = async () => {
       try {
-        const response = await fetch(`/api/direcciones/provincias/7/cantones/${formData.codigoCanton}/distritos/${formData.codigoDistrito}/barrios`);
+        const response = await fetch(`/api/direcciones/provincias/7/cantones/${selectedCanton}/distritos/${selectedDistrito}/barrios`);
         const data = await response.json();
         setBarrios(data);
-        setFormData(prev => ({ ...prev, codigoBarrio: '' }));
+        setSelectedBarrio('');
       } catch (error) {
         console.error('Error cargando barrios:', error);
       }
     };
 
     cargarBarrios();
-  }, [formData.codigoCanton, formData.codigoDistrito]);
+  }, [selectedCanton, selectedDistrito]);
 
   // Manejar cambios en el formulario
   const handleChange = (e) => {
@@ -151,140 +125,76 @@ const AdminCompaniesForm = () => {
     }));
   };
 
-  // Manejar selección de actividades
-  const handleActividadChange = (idActividad) => {
-    setActividadesSeleccionadas(prev => {
-      if (prev.includes(idActividad)) {
-        const nuevasActividades = prev.filter(id => id !== idActividad);
-        const nuevosPrecios = { ...preciosActividades };
-        delete nuevosPrecios[idActividad];
-        setPreciosActividades(nuevosPrecios);
-        return nuevasActividades;
-      } else {
-        return [...prev, idActividad];
-      }
-    });
-  };
-
-  // Manejar cambio de precio de actividad
-  const handlePrecioActividadChange = (idActividad, precio) => {
-    setPreciosActividades(prev => ({
-      ...prev,
-      [idActividad]: parseFloat(precio) || 0
-    }));
-  };
-
-  // Guardar dirección
-  const guardarDireccion = async (direccionData) => {
-    try {
-      const response = await fetch('/api/direcciones', {
-        method: isEditMode && formData.idDireccion ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(direccionData)
-      });
-
-      if (!response.ok) throw new Error('Error al guardar dirección');
-      
-      const data = await response.json();
-      return data.idDireccion || formData.idDireccion;
-
-    } catch (error) {
-      console.error('Error guardando dirección:', error);
-      throw error;
-    }
-  };
-
-  // Guardar empresa
-  const guardarEmpresa = async (empresaData) => {
-    try {
-      const url = isEditMode ? `/api/empresas/${id}` : '/api/empresas';
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(empresaData)
-      });
-
-      if (!response.ok) throw new Error('Error al guardar empresa');
-      
-      const data = await response.json();
-      return data.idEmpresa || id;
-
-    } catch (error) {
-      console.error('Error guardando empresa:', error);
-      throw error;
-    }
-  };
-
-  // Asignar actividades a empresa
-  const asignarActividades = async (idEmpresa) => {
-    try {
-      await Promise.all(
-        actividadesSeleccionadas.map(async idActividad => {
-          const response = await fetch(`/api/empresas/${idEmpresa}/actividades/${idActividad}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              precio: preciosActividades[idActividad] || 0,
-              descripcion: '' // Opcional: podrías añadir un campo para descripción por actividad
-            })
-          });
-          if (!response.ok) throw new Error(`Error asignando actividad ${idActividad}`);
-        })
-      );
-    } catch (error) {
-      console.error('Error asignando actividades:', error);
-      throw error;
-    }
-  };
-
   // Manejar envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      // 1. Guardar dirección
+      // Validar campos requeridos
+      if (!formData.nombre || !formData.cedulaJuridica || !selectedCanton || !selectedDistrito || !selectedBarrio || !formData.senasExactas) {
+        throw new Error('Por favor complete todos los campos requeridos');
+      }
+
+      // 1. Insertar dirección
       const direccionData = {
-        codigoProvincia: formData.codigoProvincia,
-        codigoCanton: formData.codigoCanton,
-        codigoDistrito: formData.codigoDistrito,
-        codigoBarrio: formData.codigoBarrio,
+        codigoProvincia: '7',
+        codigoCanton: selectedCanton,
+        codigoDistrito: selectedDistrito,
+        codigoBarrio: selectedBarrio,
         senasExactas: formData.senasExactas,
-        gps: formData.gps,
-        idDireccion: formData.idDireccion
+        gps: formData.gps || null
       };
 
-      const idDireccion = await guardarDireccion(direccionData);
+      const dirResponse = await fetch('/api/direcciones', {
+        method: isEditMode && formData.idDireccion ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(direccionData)
+      });
 
-      // 2. Guardar empresa
+      if (!dirResponse.ok) {
+        const errorData = await dirResponse.json();
+        throw new Error(errorData.error || 'Error al guardar la dirección');
+      }
+
+      const dirResult = await dirResponse.json();
+      const idDireccion = dirResult.idDireccion;
+      console.log(idDireccion);
+      // 2. Insertar empresa
       const empresaData = {
         nombre: formData.nombre,
         cedulaJuridica: formData.cedulaJuridica,
-        email: formData.email,
-        telefono: formData.telefono,
+        email: formData.email || null,
+        telefono: formData.telefono || null,
         contactoNombre: formData.contactoNombre,
-        descripcion: formData.descripcion,
-        idDireccion: idDireccion
+        idDireccion: idDireccion,
+        descripcion: formData.descripcion
       };
 
-      const idEmpresa = await guardarEmpresa(empresaData);
+      const empResponse = await fetch('/api/empresas-recreacion', {
+        method: isEditMode ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(empresaData)
+      });
 
-      // 3. Asignar actividades
-      if (actividadesSeleccionadas.length > 0) {
-        await asignarActividades(idEmpresa);
+      if (!empResponse.ok) {
+        const errorData = await empResponse.json();
+        throw new Error(errorData.error || 'Error al guardar la empresa');
       }
+
+      const empResult = await empResponse.json();
+      console.log('Empresa guardada con ID:', empResult.idEmpresa);
 
       alert(`Empresa ${isEditMode ? 'actualizada' : 'registrada'} exitosamente`);
       navigate('/admin/companies');
 
     } catch (error) {
-      alert(`Error al ${isEditMode ? 'actualizar' : 'guardar'} la empresa: ${error.message}`);
+      console.error('Error en el proceso:', error);
+      alert(`Error: ${error.message}`);
     }
   };
 
   return (
-    <div className="register-container">
+      <div className="register-container">
       <div className="register-header">
         <h2>{isEditMode ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</h2>
       </div>
@@ -349,20 +259,10 @@ const AdminCompaniesForm = () => {
         </div>
 
         <div className="form-group">
-          <label>Provincia:</label>
-          <input 
-            type="text"
-            value="San José" 
-            disabled
-          />
-        </div>
-
-        <div className="form-group">
           <label>Cantón:</label>
           <select 
-            name="codigoCanton"
-            value={formData.codigoCanton}
-            onChange={handleChange}
+            value={selectedCanton}
+            onChange={(e) => setSelectedCanton(e.target.value)}
             required
           >
             <option value="" disabled hidden>Seleccione un Cantón</option>
@@ -377,11 +277,10 @@ const AdminCompaniesForm = () => {
         <div className="form-group">
           <label>Distrito:</label>
           <select 
-            name="codigoDistrito"
-            value={formData.codigoDistrito}
-            onChange={handleChange}
+            value={selectedDistrito}
+            onChange={(e) => setSelectedDistrito(e.target.value)}
             required
-            disabled={!formData.codigoCanton}
+            disabled={!selectedCanton}
           >
             <option value="" disabled hidden>Seleccione un Distrito</option>
             {distritos.map(distrito => (
@@ -395,11 +294,10 @@ const AdminCompaniesForm = () => {
         <div className="form-group">
           <label>Barrio:</label>
           <select 
-            name="codigoBarrio"
-            value={formData.codigoBarrio}
-            onChange={handleChange}
+            value={selectedBarrio}
+            onChange={(e) => setSelectedBarrio(e.target.value)}
             required
-            disabled={!formData.codigoDistrito}
+            disabled={!selectedDistrito}
           >
             <option value="" disabled hidden>Seleccione un Barrio</option>
             {barrios.map(barrio => (
@@ -442,39 +340,6 @@ const AdminCompaniesForm = () => {
             onChange={handleChange}
             required
           />
-        </div>
-
-        <div className="options-section">
-          <h3>Actividades Ofrecidas</h3>
-          
-          <div className="options-checkbox-group">
-            {actividades.map(actividad => (
-              <div key={actividad.ID_Tipo_Actividad} className="activity-option">
-                <label className="options-checkbox">
-                  <input 
-                    type="checkbox"
-                    checked={actividadesSeleccionadas.includes(actividad.ID_Tipo_Actividad)}
-                    onChange={() => handleActividadChange(actividad.ID_Tipo_Actividad)}
-                  />
-                  <span>{actividad.Nombre}</span>
-                </label>
-                
-                {actividadesSeleccionadas.includes(actividad.ID_Tipo_Actividad) && (
-                  <div className="activity-price">
-                    <label>Precio (₡):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={preciosActividades[actividad.ID_Tipo_Actividad] || ''}
-                      onChange={(e) => handlePrecioActividadChange(actividad.ID_Tipo_Actividad, e.target.value)}
-                      placeholder="Precio"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="form-actions">

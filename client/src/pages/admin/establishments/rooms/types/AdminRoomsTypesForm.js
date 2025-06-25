@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';  
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams,useLocation } from 'react-router-dom';
 
 const AdminRoomsTypesForm = () => {
   const navigate = useNavigate();
-  const params = useParams();
-  const { idEstablecimiento, mode, id } = params;
+  const { mode, id } = useParams();
+  const location = useLocation();
+  const idEstablecimiento = useParams().idEstablecimiento || location.state?.idEstablecimiento;
+  console.log('ID Establecimiento recibido:', idEstablecimiento); 
   const isEditMode = mode === 'edit';
 
   // Estados 
@@ -158,8 +160,8 @@ const AdminRoomsTypesForm = () => {
           
           <button 
             type="button"
-            onClick={() => navigate(`/admin/establishments/${idEstablecimiento}/rooms/types`)}
-            className="cancel-btn"
+            onClick={() => navigate(`/admin/establishments/${idEstablecimiento}`)}
+            className="text-link"
           >
             Cancelar
           </button>

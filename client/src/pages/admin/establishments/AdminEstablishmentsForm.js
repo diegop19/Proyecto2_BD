@@ -112,6 +112,7 @@ const handleSubmit = async (e) => {
   const form = e.target;
 
   try {
+    console.log(selectedBarrio);
     // 1. Insertar dirección
     const direccionData = {
       codigoProvincia: '7', 

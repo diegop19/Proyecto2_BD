@@ -954,7 +954,33 @@ app.get('/api/establecimientos/all', async (req, res) => {
   }
 });
 
+app.post('/api/tipos-actividad', async (req, res) => {
+  try {
+    if (!req.body.nombre) {
+      return res.status(400).json({ error: 'El campo nombre es requerido' });
+    }
 
+    const tipoActividadData = {
+      nombre: req.body.nombre
+    };
+
+    const idTipoActividad = await dbService.insertarTipoActividad(tipoActividadData);
+    res.status(201).json({ idTipoActividad });
+  } catch (error) {
+    console.error('Error al crear tipo de actividad:', error);
+    res.status(500).json({ error: 'Error al crear tipo de actividad' });
+  }
+});
+
+app.get('/api/empresas-recreacion/all', async (req, res) => {
+  try {
+    const empresas = await dbService.obtenerEmpresasRecreacion();
+    res.json(empresas);
+  } catch (error) {
+    console.error('Error al obtener empresas de recreación:', error);
+    res.status(500).json({ error: 'Error al obtener empresas de recreación' });
+  }
+});
 
 
 

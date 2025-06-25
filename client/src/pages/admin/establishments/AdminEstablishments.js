@@ -96,12 +96,14 @@ const AdminEstablishments = () => {
                 <Link 
                   to={`/admin/establishments/${establecimiento.ID_Establecimiento}/rooms/types/register`}
                   className="management-btn"
+                  state={{ idEstablecimiento: establecimiento.ID_Establecimiento }} 
                 >
                   + Tipo Habitación
                 </Link>
                 <Link 
                   to={`/admin/establishments/${establecimiento.ID_Establecimiento}/rooms/register`}
                   className="management-btn"
+                   state={{ idEstablecimiento: establecimiento.ID_Establecimiento }} 
                 >
                   + Habitación
                 </Link>

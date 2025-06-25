@@ -134,7 +134,7 @@ module.exports = {
     const pool = await getConnection();
     const result = await pool.request()
       .input('ID_Establecimiento', sql.Int, idEstablecimiento)
-      .execute('sp_ObtenerTiposHabitacionPorHotel');
+      .execute('sp_ObtenerTiposHabitacioneEstablecimiento');
     
     return result.recordset; 
   },
@@ -180,10 +180,20 @@ module.exports = {
     // Parametro opcional con valor por defecto
     request.input('Estado', sql.VarChar(20), habitacionData.estado || 'Disponible');
     
-    request.output('IDHabitacion', sql.Int);
     
-    await request.execute('sp_InsertarHabitacion');
-    return request.parameters.IDHabitacion.value;
+    const result = await request.execute('sp_InsertarHabitacion');
+        
+    if (!result.recordset || result.recordset.length === 0) {
+            throw new Error('El procedimiento no devolvió un ID');
+    }
+        
+    const idGenerado = result.recordset[0].IDHabitacion;
+        
+    if (!idGenerado) {
+            throw new Error('ID de dirección inválido');
+    }
+      
+    return idGenerado.toString();
   },
 
   // CLIENTES ---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,15 +298,10 @@ module.exports = {
     request.input('ID_Direccion', sql.Int, empresaData.idDireccion || null);
     request.input('Descripcion', sql.Text, empresaData.descripcion || null);
     
-    request.output('ID_Empresa', sql.Int);
     
-    try {
-      await request.execute('sp_InsertarEmpresaRecreacion');
-      return request.parameters.ID_Empresa.value;
-    } catch (error) {
-      console.error('Error en sp_InsertarEmpresaRecreacion:', error);
-      return -1; 
-    }
+    const result = await request.execute('sp_InsertarEmpresaRecreacion');
+    const idGenerado = result.recordset[0].IDEmpresaRecreacion.toString();
+    return idGenerado;
   },
 
   // ASIGNAR ACTIVIDAD A EMPRESA
@@ -703,8 +708,32 @@ buscarEmpresasRecreacion: async (filtros) => {
   },
 
 
+  insertarTipoActividad: async (tipoActividadData) => {
+    const pool = await getConnection();
+    const request = pool.request();
+    
+    request.input('Nombre', sql.VarChar(50), tipoActividadData.nombre);
 
+    const result = await request.execute('sp_InsertarTipoActividad');
+        
+    if (!result.recordset || result.recordset.length === 0) {
+      throw new Error('El procedimiento no devolvió un ID');
+    }
+        
+    const idGenerado = result.recordset[0].IDTipoActividad;
+        
+    if (!idGenerado) {
+      throw new Error('ID de tipo de actividad inválido');
+    }
+      
+    return idGenerado.toString();
+  },
 
+obtenerEmpresasRecreacion: async () => {
+    const pool = await getConnection();
+    const result = await pool.request().execute('sp_ObtenerEmpresasRecreacion');
+    return result.recordset;
+  },
 
 
 
