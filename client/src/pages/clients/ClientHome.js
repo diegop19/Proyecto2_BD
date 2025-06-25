@@ -18,14 +18,12 @@ const ClientHome = () => {
     actividades: null
   });
 
-  // Cargar datos de establecimientos
   useEffect(() => {
     const fetchHospedajes = async () => {
       try {
         const response = await fetch('/api/establecimientos/all');
         if (!response.ok) throw new Error('Error al cargar hospedajes');
         const data = await response.json();
-        // Seleccionar 3 al azar para mostrar como destacados
         const destacados = data.sort(() => 0.5 - Math.random()).slice(0, 3);
         setHospedajesDestacados(destacados);
       } catch (err) {
@@ -39,14 +37,12 @@ const ClientHome = () => {
     fetchHospedajes();
   }, []);
 
-  // Cargar datos de empresas de recreación
   useEffect(() => {
     const fetchActividades = async () => {
       try {
         const response = await fetch('/api/empresas-recreacion/all');
         if (!response.ok) throw new Error('Error al cargar actividades');
         const data = await response.json();
-        // Seleccionar 3 al azar para mostrar como destacados
         const destacados = data.sort(() => 0.5 - Math.random()).slice(0, 3);
         setActividadesDestacadas(destacados);
       } catch (err) {
@@ -60,7 +56,6 @@ const ClientHome = () => {
     fetchActividades();
   }, []);
 
-  // Componente de tarjeta reutilizable
 const FeaturedCard = ({ item, type }) => {
     const defaultImage = type === 'hospedaje' ? defaultLodgingImage : defaultActivityImage;
     const imageUrl = item.Imagen_URL || defaultImage;
@@ -109,7 +104,6 @@ const FeaturedCard = ({ item, type }) => {
       />
 
       <div className="main-content">
-        {/* Sección de Hospedajes para ti */}
         <section className="featured-section">
           <div className="section-header">
             <h2>Hospedajes para ti</h2>
@@ -138,7 +132,6 @@ const FeaturedCard = ({ item, type }) => {
           )}
         </section>
 
-        {/* Sección de Actividades apasionantes */}
         <section className="featured-section">
           <div className="section-header">
             <h2>Actividades apasionantes</h2>

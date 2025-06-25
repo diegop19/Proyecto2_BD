@@ -9,7 +9,6 @@ const ClientActivities = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Cargar datos de empresas de recreación
   useEffect(() => {
     const fetchEmpresas = async () => {
       try {
@@ -28,7 +27,7 @@ const ClientActivities = () => {
     fetchEmpresas();
   }, []);
 
-  // Filtrar empresas
+
   const filteredEmpresas = empresas.filter(emp =>
     emp.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (emp.Actividades_Ofrecidas && emp.Actividades_Ofrecidas.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -36,7 +35,7 @@ const ClientActivities = () => {
     emp.Distrito.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Formatear actividades
+
   const formatActividades = (actividades) => {
     if (!actividades) return 'No especificado';
     const lista = actividades.split(', ');
@@ -46,7 +45,6 @@ const ClientActivities = () => {
     return actividades;
   };
 
-  // Manejar clic en tarjeta
   const handleCardClick = (id) => {
     navigate(`/activities/${id}`);
   };

@@ -29,7 +29,7 @@ const ClientForm = () => {
   const [selectedDistrito, setSelectedDistrito] = useState('');
   const [selectedBarrio, setSelectedBarrio] = useState('');
 
-  // Cargar cantones al montar el componente
+  // Cargar cantones 
   useEffect(() => {
     const cargarCantones = async () => {
       try {
@@ -44,7 +44,7 @@ const ClientForm = () => {
     cargarCantones();
   }, []);
 
-  // Cargar distritos cuando se selecciona un cantón
+  // Cargar distritos 
   useEffect(() => {
     if (!selectedCanton) return;
 
@@ -63,7 +63,7 @@ const ClientForm = () => {
     cargarDistritos();
   }, [selectedCanton]);
 
-  // Cargar barrios cuando se selecciona un distrito
+  // Cargar barrios
   useEffect(() => {
     if (!selectedDistrito) return;
 
@@ -81,7 +81,7 @@ const ClientForm = () => {
     cargarBarrios();
   }, [selectedDistrito]);
 
-  // Manejar cambios en el formulario
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -90,12 +90,11 @@ const ClientForm = () => {
     }));
   };
 
-  // Manejar envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      // 1. Insertar dirección si se proporcionó
+
       let idDireccion = null;
       if (selectedCanton && selectedDistrito && selectedBarrio) {
         const direccionData = {
@@ -118,7 +117,6 @@ const ClientForm = () => {
         idDireccion = dirResult.idDireccion;
       }
 
-      // 2. Insertar cliente
       const clienteData = {
         ...formData,
         idDireccion: idDireccion
@@ -133,14 +131,13 @@ const ClientForm = () => {
       if (!response.ok) throw new Error('Error al registrar cliente');
       const data = await response.json();
 
-      // Mostrar mensaje de éxito
-      const mensajeExito = `✅ Cliente registrado exitosamente!\n\nID Cliente: ${data.idCliente}`;
+      const mensajeExito = ` Cliente registrado exitosamente\n\nID Cliente: ${data.idCliente}`;
       if (idDireccion) {
         mensajeExito += `\nID Dirección: ${idDireccion}`;
       }
 
       if (window.confirm(mensajeExito + '\n\n¿Deseas registrar otro cliente?')) {
-        // Limpiar formulario para nuevo registro
+
         setFormData({
           nombre: '',
           apellido1: '',
@@ -157,7 +154,7 @@ const ClientForm = () => {
         setSelectedDistrito('');
         setSelectedBarrio('');
       } else {
-        navigate('/clientes'); // Redirigir al listado de clientes
+        navigate('/clientes'); 
       }
 
     } catch (error) {
