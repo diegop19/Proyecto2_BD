@@ -30,6 +30,86 @@ const AdminEstablishmentsForm = () => {
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
 
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    cedulaJuridica: '',
+    senasExactas: '',
+    gps: '',
+    telefono1: '',
+    telefono2: '',
+    email: '',
+    webURL: '',
+    facebookURL: '',
+    instagramURL: '',
+    youtubeURL: '',
+    tiktokURL: '',
+    airbnbURL: '',
+    threadsURL: '',
+    xURL: ''
+  });
+
+  useEffect(() => {
+  if (isEditMode && id) {
+    const cargarEstablecimiento = async () => {
+      try {
+        // 1. Obtener datos del establecimiento
+        const [estResponse, serviciosResponse] = await Promise.all([
+          fetch(`/api/establecimientos/${id}`),
+          fetch(`/api/establecimientos/${id}/servicios`)
+        ]);
+        
+        const establecimiento = await estResponse.json();
+        const servicios = await serviciosResponse.json();
+        
+        // 2. Obtener dirección asociada
+        const dirResponse = await fetch(`/api/direcciones/${establecimiento.idDireccion}`);
+        const direccion = await dirResponse.json();
+        
+        // Actualizar estados
+        setFormData({
+          nombre: establecimiento.nombre,
+          cedulaJuridica: establecimiento.cedulaJuridica,
+          senasExactas: direccion.senasExactas,
+          gps: direccion.gps || '',
+          telefono1: establecimiento.telefono1 || '',
+          telefono2: establecimiento.telefono2 || '',
+          email: establecimiento.email || '',
+          webURL: establecimiento.webURL || '',
+          facebookURL: establecimiento.facebookURL || '',
+          instagramURL: establecimiento.instagramURL || '',
+          youtubeURL: establecimiento.youtubeURL || '',
+          tiktokURL: establecimiento.tiktokURL || '',
+          airbnbURL: establecimiento.airbnbURL || '',
+          threadsURL: establecimiento.threadsURL || '',
+          xURL: establecimiento.xURL || ''
+        });
+        
+        setSelectedTipo(establecimiento.tipo);
+        setSelectedCanton(direccion.codigoCanton);
+        setSelectedDistrito(direccion.codigoDistrito);
+        setSelectedBarrio(direccion.codigoBarrio);
+        setServiciosSeleccionados(servicios.map(s => s.ID_Servicio));
+        
+      } catch (error) {
+        console.error('Error cargando datos:', error);
+        alert('Error al cargar los datos del establecimiento');
+      }
+    };
+    
+    cargarEstablecimiento();
+    }
+  }, [isEditMode, id]);
+
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+  
   const obtenerServicios = async () => {
   try {
     const response = await fetch('/api/servicios');
@@ -239,6 +319,8 @@ const handleSubmit = async (e) => {
             type="text"
              name="nombre" 
             required
+            value={formData.nombre}
+            onChange={handleInputChange}
           />
         </div>
 
@@ -249,6 +331,8 @@ const handleSubmit = async (e) => {
             placeholder="0-000-000000"
              name="cedulaJuridica" 
             required
+            value={formData.cedulaJuridica}
+            onChange={handleInputChange}
           />
         </div>
 
@@ -320,7 +404,8 @@ const handleSubmit = async (e) => {
 
         <div className="form-group">
           <label>Señas Exactas:</label>
-          <textarea rows="4" name='senasExactas' required></textarea>
+          <textarea rows="4" name='senasExactas'  value={formData.senasExactas}
+            onChange={handleInputChange} required></textarea>
         </div>
 
         <div className="form-group">
@@ -358,6 +443,8 @@ const handleSubmit = async (e) => {
             type="text"
              name="email" 
             placeholder="example@gmail.com"
+             value={formData.email}
+              onChange={handleInputChange}
             required
           />
         </div>

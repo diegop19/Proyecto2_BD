@@ -1,63 +1,101 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeroSection from '../../components/HeroSection';
 import clientHero from '../../images/imagen1.jpg';
+import defaultLodgingImage from '../../images/default-lodging.jpg';
+import defaultActivityImage from '../../images/default-activity.jpg';
 
 const ClientHome = () => {
   const navigate = useNavigate();
+  const [hospedajesDestacados, setHospedajesDestacados] = useState([]);
+  const [actividadesDestacadas, setActividadesDestacadas] = useState([]);
+  const [loading, setLoading] = useState({
+    hospedajes: true,
+    actividades: true
+  });
+  const [error, setError] = useState({
+    hospedajes: null,
+    actividades: null
+  });
 
-  // Datos de prueba para hospedajes destacados
-  const hospedajesDestacados = [
-    {
-      id: 1,
-      nombre: "Hotel Playa Bonita",
-      tipo: "Hotel",
-      descripcion: "Ubicado frente a la playa con vista al mar Caribe",
-      precioMinimo: 45000,
-      imagen: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      nombre: "Cabañas Cocorí",
-      tipo: "Cabaña",
-      descripcion: "Cabañas rústicas en medio de la naturaleza",
-      precioMinimo: 35000,
-      imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      nombre: "Eco Lodge Tortuguero",
-      tipo: "Lodge",
-      descripcion: "Experiencia ecológica cerca del parque nacional",
-      precioMinimo: 55000,
-      imagen: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    }
-  ];
+  // Cargar datos de establecimientos
+  useEffect(() => {
+    const fetchHospedajes = async () => {
+      try {
+        const response = await fetch('/api/establecimientos/all');
+        if (!response.ok) throw new Error('Error al cargar hospedajes');
+        const data = await response.json();
+        // Seleccionar 3 al azar para mostrar como destacados
+        const destacados = data.sort(() => 0.5 - Math.random()).slice(0, 3);
+        setHospedajesDestacados(destacados);
+      } catch (err) {
+        setError(prev => ({...prev, hospedajes: err.message}));
+        console.error('Error fetching hospedajes:', err);
+      } finally {
+        setLoading(prev => ({...prev, hospedajes: false}));
+      }
+    };
 
-  // Datos de prueba para actividades destacadas
-  const actividadesDestacadas = [
-    {
-      id: 1,
-      nombre: "Tour por el Canal de Tortuguero",
-      descripcion: "Recorrido en bote por los canales para observar la biodiversidad",
-      precio: 35000,
-      imagen: "https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      nombre: "Caminata Nocturna en la Selva",
-      descripcion: "Experiencia guiada para observar vida nocturna en la selva",
-      precio: 28000,
-      imagen: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      nombre: "Avistamiento de Tortugas Marinas",
-      descripcion: "Observación de tortugas desovando en playa (temporada)",
-      precio: 40000,
-      imagen: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    }
-  ];
+    fetchHospedajes();
+  }, []);
 
+  // Cargar datos de empresas de recreación
+  useEffect(() => {
+    const fetchActividades = async () => {
+      try {
+        const response = await fetch('/api/empresas-recreacion/all');
+        if (!response.ok) throw new Error('Error al cargar actividades');
+        const data = await response.json();
+        // Seleccionar 3 al azar para mostrar como destacados
+        const destacados = data.sort(() => 0.5 - Math.random()).slice(0, 3);
+        setActividadesDestacadas(destacados);
+      } catch (err) {
+        setError(prev => ({...prev, actividades: err.message}));
+        console.error('Error fetching actividades:', err);
+      } finally {
+        setLoading(prev => ({...prev, actividades: false}));
+      }
+    };
+
+    fetchActividades();
+  }, []);
+
+  // Componente de tarjeta reutilizable
+const FeaturedCard = ({ item, type }) => {
+    const defaultImage = type === 'hospedaje' ? defaultLodgingImage : defaultActivityImage;
+    const imageUrl = item.Imagen_URL || defaultImage;
+
+    return (
+      <div className="featured-card">
+        <div className="card-image-container">
+          <img 
+            src={imageUrl} 
+            alt={item.Nombre} 
+            className="card-image" 
+          />
+        </div>
+        <div className="card-content">
+          <h3>{item.Nombre}</h3>
+          {type === 'hospedaje' && (
+            <p className="card-type">{item.Tipo}</p>
+          )}
+          {type === 'actividad' && item.Actividades_Ofrecidas && (
+            <p className="card-type">{item.Actividades_Ofrecidas.split(', ').slice(0, 2).join(', ')}</p>
+          )}
+          <button 
+            onClick={() => navigate(`/${type === 'hospedaje' ? 'lodging' : 'activities'}/${item.ID_Establecimiento || item.ID_Empresa}`)}
+            className="card-button"
+          >
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
+
+  
   return (
     <div>
       <HeroSection
@@ -83,27 +121,21 @@ const ClientHome = () => {
             </button>
           </div>
           
-          <div className="horizontal-list">
-            {hospedajesDestacados.map(hospedaje => (
-              <div key={hospedaje.id} className="featured-card">
-                <div className="card-image-container">
-                  <img src={hospedaje.imagen} alt={hospedaje.nombre} className="card-image" />
-                </div>
-                <div className="card-content">
-                  <h3>{hospedaje.nombre}</h3>
-                  <p className="card-type">{hospedaje.tipo}</p>
-                  <p className="card-description">{hospedaje.descripcion}</p>
-                  <p className="card-price">Desde: ₡{hospedaje.precioMinimo?.toLocaleString() || 'Consultar'}</p>
-                  <button 
-                    onClick={() => navigate(`/lodging?highlight=${hospedaje.id}`)}
-                    className="card-button"
-                  >
-                    Ver detalles
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          {loading.hospedajes ? (
+            <div className="loading-message">Cargando hospedajes...</div>
+          ) : error.hospedajes ? (
+            <div className="error-message">{error.hospedajes}</div>
+          ) : (
+            <div className="horizontal-list">
+              {hospedajesDestacados.map(hospedaje => (
+                <FeaturedCard 
+                  key={hospedaje.ID_Establecimiento} 
+                  item={hospedaje} 
+                  type="hospedaje" 
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Sección de Actividades apasionantes */}
@@ -118,26 +150,21 @@ const ClientHome = () => {
             </button>
           </div>
           
-          <div className="horizontal-list">
-            {actividadesDestacadas.map(actividad => (
-              <div key={actividad.id} className="featured-card">
-                <div className="card-image-container">
-                  <img src={actividad.imagen} alt={actividad.nombre} className="card-image" />
-                </div>
-                <div className="card-content">
-                  <h3>{actividad.nombre}</h3>
-                  <p className="card-description">{actividad.descripcion}</p>
-                  <p className="card-price">Precio: ₡{actividad.precio.toLocaleString()}</p>
-                  <button 
-                    onClick={() => navigate(`/activities?highlight=${actividad.id}`)}
-                    className="card-button"
-                  >
-                    Ver detalles
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          {loading.actividades ? (
+            <div className="loading-message">Cargando actividades...</div>
+          ) : error.actividades ? (
+            <div className="error-message">{error.actividades}</div>
+          ) : (
+            <div className="horizontal-list">
+              {actividadesDestacadas.map(actividad => (
+                <FeaturedCard 
+                  key={actividad.ID_Empresa} 
+                  item={actividad} 
+                  type="actividad" 
+                />
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

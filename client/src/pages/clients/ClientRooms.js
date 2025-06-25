@@ -1,56 +1,72 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import defaultLodgingImage from '../../images/default-lodging.jpg';
 
 const ClientRooms = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const establecimientos = [
-    {
-      id: 1,
-      nombre: "Hotel Playa Bonita",
-      tipo: "Hotel",
-      descripcion: "Ubicado frente a la playa con vista al mar Caribe",
-      direccion: {
-        canton: "Limon",
-        distrito: "Limon",
-        senasExactas: "200 metros norte del mirador de Playa Bonita"
-      },
-      precioMinimo: 45000,
-      imagen: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      nombre: "Cabañas Cocorí",
-      tipo: "Cabaña",
-      descripcion: "Cabañas rústicas en medio de la naturaleza",
-      direccion: {
-        canton: "Pococí",
-        distrito: "Guápiles",
-        senasExactas: "Frente al parque central de Río Blanco"
-      },
-      precioMinimo: 35000,
-      imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      nombre: "Eco Lodge Tortuguero",
-      tipo: "Lodge",
-      descripcion: "Experiencia ecológica cerca del parque nacional",
-      direccion: {
-        canton: "Pococí",
-        distrito: "Tortuguero",
-        senasExactas: "300 metros este de la estación de bomberos"
-      },
-      precioMinimo: 55000,
-      imagen: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    }
-  ];
+  const [establecimientos, setEstablecimientos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
+  // Cargar datos de establecimientos
+  useEffect(() => {
+    const fetchEstablecimientos = async () => {
+      try {
+        const response = await fetch('/api/establecimientos/all');
+        if (!response.ok) throw new Error('Error al cargar establecimientos');
+        const data = await response.json();
+        setEstablecimientos(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching establecimientos:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEstablecimientos();
+  }, []);
+
+  // Filtrar establecimientos
   const filteredEstablecimientos = establecimientos.filter(est =>
-    est.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    est.direccion.canton.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    est.direccion.distrito.toLowerCase().includes(searchTerm.toLowerCase())
+    est.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    est.Canton.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    est.Distrito.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    est.Tipo.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Formatear servicios
+  const formatServicios = (servicios) => {
+    if (!servicios) return 'No especificado';
+    const lista = servicios.split(', ');
+    if (lista.length > 3) {
+      return `${lista.slice(0, 3).join(', ')} y más...`;
+    }
+    return servicios;
+  };
+
+  // Manejar clic en tarjeta
+  const handleCardClick = (id) => {
+    navigate(`/lodging/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <p>Cargando establecimientos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>Error: {error}</p>
+        <button onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -60,7 +76,7 @@ const ClientRooms = () => {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Buscar por nombre o ubicación..."
+            placeholder="Buscar por nombre, tipo o ubicación..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -69,33 +85,61 @@ const ClientRooms = () => {
 
       <div className="cards-grid">
         {filteredEstablecimientos.length > 0 ? (
-          filteredEstablecimientos.map(establecimiento => (
-            <div key={establecimiento.id} className="card">
+          filteredEstablecimientos.map(est => (
+            <div 
+              key={est.ID_Establecimiento} 
+              className="card"
+              onClick={() => handleCardClick(est.ID_Establecimiento)}
+            >
               <div className="card-image-container">
                 <img 
-                  src={establecimiento.imagen} 
-                  alt={establecimiento.nombre}
+                  src={est.Imagen_URL || defaultLodgingImage} 
+                  alt={est.Nombre}
                   className="card-image"
+                  onError={(e) => {
+                    e.target.src = defaultLodgingImage;
+                  }}
                 />
+                <div className="card-badge">{est.Tipo}</div>
               </div>
               
               <div className="card-content">
-                <h3>{establecimiento.nombre}</h3>
-                <p className="card-type">{establecimiento.tipo}</p>
-                <p className="card-location">
-                  <strong>Ubicación:</strong> {establecimiento.direccion.canton}, {establecimiento.direccion.distrito}
-                </p>
-                <p className="card-description">{establecimiento.descripcion}</p>
-                <p className="card-price">
-                  <strong>Desde:</strong> ₡{establecimiento.precioMinimo?.toLocaleString() || 'Consultar'}
-                </p>
+                <h3>{est.Nombre}</h3>
                 
-                <Link 
-                  to={`/reservation?establecimiento=${establecimiento.id}`}
-                  className="card-button"
-                >
-                  Reservar Ahora
-                </Link>
+                <div className="card-info-section">
+                  <div className="info-item">
+                    <span className="info-label">Ubicación:</span>
+                    <span className="info-value">{est.Distrito}, {est.Canton}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Dirección:</span>
+                    <span className="info-value">{est.Senas_Exactas || 'No especificada'}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Servicios:</span>
+                    <span className="info-value">{formatServicios(est.Servicios)}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Contacto:</span>
+                    <span className="info-value">
+                      {est.Telefono1 || 'No especificado'}
+                      {est.Telefono2 && ` / ${est.Telefono2}`}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="card-actions">
+                  <Link 
+                    to={`/reservation?establecimiento=${est.ID_Establecimiento}`}
+                    className="card-button"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Reservar
+                  </Link>
+                </div>
               </div>
             </div>
           ))
@@ -106,7 +150,7 @@ const ClientRooms = () => {
               onClick={() => setSearchTerm('')}
               className="clear-search-btn"
             >
-              Limpiar búsqueda
+              Mostrar todos
             </button>
           </div>
         )}

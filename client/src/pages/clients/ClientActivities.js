@@ -1,68 +1,82 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import defaultActivityImage from '../../images/default-activity.jpg';
 
 const ClientActivities = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Datos de prueba de actividades
-  const actividades = [
-    {
-      id: 1,
-      nombre: "Tour por el Canal de Tortuguero",
-      descripcion: "Recorrido en bote por los canales para observar la biodiversidad",
-      ubicacion: "Parque Nacional Tortuguero",
-      precio: 35000,
-      duracion: "4 horas",
-      dificultad: "Baja",
-      imagen: "https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      nombre: "Caminata Nocturna en la Selva",
-      descripcion: "Experiencia guiada para observar vida nocturna en la selva",
-      ubicacion: "Reserva Biológica Hitoy-Cerere",
-      precio: 28000,
-      duracion: "3 horas",
-      dificultad: "Media",
-      imagen: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      nombre: "Avistamiento de Tortugas Marinas",
-      descripcion: "Observación de tortugas desovando en playa (temporada)",
-      ubicacion: "Playa Gandoca",
-      precio: 40000,
-      duracion: "2 horas",
-      dificultad: "Baja",
-      imagen: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 4,
-      nombre: "Kayak en el Río Pacuare",
-      descripcion: "Aventura en kayak por uno de los ríos más bellos del mundo",
-      ubicacion: "Río Pacuare",
-      precio: 45000,
-      duracion: "5 horas",
-      dificultad: "Alta",
-      imagen: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    }
-  ];
+  const [empresas, setEmpresas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const filteredActividades = actividades.filter(act =>
-    act.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    act.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    act.ubicacion.toLowerCase().includes(searchTerm.toLowerCase())
+  // Cargar datos de empresas de recreación
+  useEffect(() => {
+    const fetchEmpresas = async () => {
+      try {
+        const response = await fetch('/api/empresas-recreacion/all');
+        if (!response.ok) throw new Error('Error al cargar actividades');
+        const data = await response.json();
+        setEmpresas(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching empresas:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmpresas();
+  }, []);
+
+  // Filtrar empresas
+  const filteredEmpresas = empresas.filter(emp =>
+    emp.Nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.Actividades_Ofrecidas && emp.Actividades_Ofrecidas.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    emp.Canton.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.Distrito.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Formatear actividades
+  const formatActividades = (actividades) => {
+    if (!actividades) return 'No especificado';
+    const lista = actividades.split(', ');
+    if (lista.length > 3) {
+      return `${lista.slice(0, 3).join(', ')} y más...`;
+    }
+    return actividades;
+  };
+
+  // Manejar clic en tarjeta
+  const handleCardClick = (id) => {
+    navigate(`/activities/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <p>Cargando actividades...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>Error: {error}</p>
+        <button onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
       <div className="section-header">
-        <h2>Actividades Disponibles en Limón</h2>
+        <h2>Actividades Recreativas en Limón</h2>
         
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Buscar por nombre, descripción o ubicación..."
+            placeholder="Buscar por nombre, actividad o ubicación..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -70,39 +84,62 @@ const ClientActivities = () => {
       </div>
 
       <div className="cards-grid">
-        {filteredActividades.length > 0 ? (
-          filteredActividades.map(actividad => (
-            <div key={actividad.id} className="card">
+        {filteredEmpresas.length > 0 ? (
+          filteredEmpresas.map(emp => (
+            <div 
+              key={emp.ID_Empresa} 
+              className="card"
+              onClick={() => handleCardClick(emp.ID_Empresa)}
+            >
               <div className="card-image-container">
                 <img 
-                  src={actividad.imagen} 
-                  alt={actividad.nombre}
+                  src={emp.Imagen_URL || defaultActivityImage} 
+                  alt={emp.Nombre}
                   className="card-image"
+                  onError={(e) => {
+                    e.target.src = defaultActivityImage;
+                  }}
                 />
+                <div className="card-badge">Actividades</div>
               </div>
               
               <div className="card-content">
-                <h3>{actividad.nombre}</h3>
-                <p className="card-location">
-                  <strong>Ubicación:</strong> {actividad.ubicacion}
-                </p>
-                <p className="card-duration">
-                  <strong>Duración:</strong> {actividad.duracion}
-                </p>
-                <p className="card-difficulty">
-                  <strong>Dificultad:</strong> {actividad.dificultad}
-                </p>
-                <p className="card-description">{actividad.descripcion}</p>
-                <p className="card-price">
-                  <strong>Precio:</strong> ₡{actividad.precio.toLocaleString()}
-                </p>
+                <h3>{emp.Nombre}</h3>
                 
-                <Link 
-                  to={`/reservation?actividad=${actividad.id}`}
-                  className="card-button"
-                >
-                  Reservar Actividad
-                </Link>
+                <div className="card-info-section">
+                  <div className="info-item">
+                    <span className="info-label">Ubicación:</span>
+                    <span className="info-value">{emp.Distrito}, {emp.Canton}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Dirección:</span>
+                    <span className="info-value">{emp.Senas_Exactas || 'No especificada'}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Actividades:</span>
+                    <span className="info-value">{formatActividades(emp.Actividades_Ofrecidas)}</span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-label">Contacto:</span>
+                    <span className="info-value">
+                      {emp.Telefono || 'No especificado'}
+                      {emp.Email && ` | ${emp.Email}`}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="card-actions">
+                  <Link 
+                    to={`/activities/book?empresa=${emp.ID_Empresa}`}
+                    className="card-button"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Reservar Actividad
+                  </Link>
+                </div>
               </div>
             </div>
           ))
@@ -113,7 +150,7 @@ const ClientActivities = () => {
               onClick={() => setSearchTerm('')}
               className="clear-search-btn"
             >
-              Limpiar búsqueda
+              Mostrar todos
             </button>
           </div>
         )}
