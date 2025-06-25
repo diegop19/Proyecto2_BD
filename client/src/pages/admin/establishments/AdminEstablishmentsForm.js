@@ -274,7 +274,6 @@ const handleSubmit = async (e) => {
   // 3. Mostrar mensaje de éxito persistente
     const mensajeExito = `✅ Establecimiento creado exitosamente!\n\nID Establecimiento: ${idEstablecimiento}\nID Dirección: ${idDireccion}`;
     
-    // Versión mejorada que evita que el mensaje se cierre automáticamente
     if (window.confirm(mensajeExito + '\n\n¿Deseas ver más detalles?')) {
       alert(`Detalles completos:\n\nNombre: ${establecimientoData.nombre}\nTipo: ${establecimientoData.tipo}\nCédula: ${establecimientoData.cedulaJuridica}`);
     }
